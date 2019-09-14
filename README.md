@@ -1,4 +1,6 @@
 # Semantic Tagger
+![Travis CI](https://api.travis-ci.org/mpdred/semantic-tagger.svg?branch=master)
+
 Increments the git repository version based on the latest git tag and latest git commit message
 
 
