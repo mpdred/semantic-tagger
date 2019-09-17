@@ -11,30 +11,21 @@ import (
 )
 
 var (
-	dryRun bool
+	tag    string
 	in     string
 	out    string
 	suffix string
 	prefix string
-)
-var (
-	tagGit    bool
-	tagDocker bool
-	tagFile   bool
+	dryRun bool
 )
 
 func parseFlags() {
-	flag.BoolVar(&dryRun, "dry-run", false, "if true, only print the object(s) that would be sent, without sending the data")
-
+	flag.StringVar(&tag, "tag", "", "tag choices: file | git | docker")
 	flag.StringVar(&in, "in", "", `input data: can be either 1) a docker image .tar file without the file extension (e.g. "api") or 2) a file that contains the version number (e.g. "setup.py")`)
 	flag.StringVar(&out, "out", "", `output: can be either 1) a docker repository or 2) the pattern for the file version (e.g. "version='%s',")`)
 	flag.StringVar(&suffix, "suffix", "", `if set, append the suffix to the version number (e.g. "0.1.0-rc")`)
 	flag.StringVar(&prefix, "prefix", "", `if set, append the prefix to the version number (e.g. "api-0.1.0")`)
-
-	flag.BoolVar(&tagGit, "git", false, "tag git commit")
-	flag.BoolVar(&tagDocker, "docker", false, "tag docker image")
-	flag.BoolVar(&tagFile, "file", false, "update the version number in a file")
-
+	flag.BoolVar(&dryRun, "dry-run", false, "if true, only print the object(s) that would be sent, without sending the data")
 	flag.Parse()
 
 	if dryRun {
@@ -44,54 +35,57 @@ func parseFlags() {
 
 func main() {
 	parseFlags()
+	git.Fetch()
 
 	var ver, nextVer version.Version
 	ver.Suffix = suffix
 	ver.Prefix = prefix
 	ver = *ver.GetLatest()
+	log.Println("current version:", ver.String())
 	nextVer = *ver.GetLatest()
 	changeType := nextVer.IncrementAuto()
-	log.Println("current version:", ver.String())
 	log.Println("next version:", nextVer.String())
 
-	if tagFile {
+	switch tag {
+	case "file":
 		f := version.File{
 			Path:          in,
 			VersionFormat: out,
 			Version:       nextVer.String(),
 		}
 		newContents := f.ReplaceSubstring()
+		log.Println("new file contents\n", *newContents)
 		if !dryRun {
 			f.Write(newContents)
 			git.Add(in)
-			git.Commit(fmt.Sprintf("set version %s %s in %s", nextVer.String(), changeType.String(), in))
+			git.Commit(fmt.Sprintf("[skip ci] set version %s %s in %s", nextVer.String(), changeType.String(), in))
 			git.Push("")
 		}
-	}
 
-	if tagGit {
+	case "git":
 		tag := &git.TagObj{
 			Name: nextVer.String(),
 		}
 		tag.SetMessage()
-		log.Println(tag)
+		log.Println("new git tag:", tag)
 		if !dryRun {
 			tag.Push()
 		}
-	}
 
-	if tagDocker {
+	case "docker":
 		docker.Load(in + ".tar")
 		img := &docker.Image{
 			Name:                in,
 			Tags:                ver.AsList(),
 			ContainerRepository: out,
 		}
-		log.Println(img)
+		log.Println("new docker image tags", img)
 		if !dryRun {
 			img.Tag()
 			img.Push()
 		}
+	default:
+		log.Printf("not implemented for %q\n", tag)
+		flag.PrintDefaults()
 	}
-
 }
