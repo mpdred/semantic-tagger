@@ -4,6 +4,8 @@ import (
 	"flag"
 	"fmt"
 	"log"
+	"os"
+	"strings"
 
 	"semtag/pkg/docker"
 	"semtag/pkg/git"
@@ -53,12 +55,20 @@ func main() {
 			VersionFormat: out,
 			Version:       nextVer.String(),
 		}
+		commitMsg, err := git.GetLastCommitNames(-1)
+		if err != nil {
+			log.Fatal(err)
+		}
+		if strings.Contains(*commitMsg, "ver inc") {
+			log.Println("version has already been incremented, exiting...")
+			os.Exit(0)
+		}
 		newContents := f.ReplaceSubstring()
 		log.Println("new file contents\n", *newContents)
 		if !dryRun {
 			f.Write(newContents)
 			git.Add(in)
-			git.Commit(fmt.Sprintf("[skip ci] set version %s %s in %s", nextVer.String(), changeType.String(), in))
+			git.Commit(fmt.Sprintf("%s ver inc: %s %s", *commitMsg, nextVer.String(), changeType.String()))
 			git.Push("")
 		}
 

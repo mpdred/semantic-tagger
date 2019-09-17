@@ -3,6 +3,7 @@ package git
 import (
 	"fmt"
 	"log"
+	"strconv"
 	"strings"
 
 	"semtag/pkg"
@@ -61,6 +62,11 @@ func GetBuildNumber() (*string, error) {
 
 func GetLastCommits(count int) (*string, error) {
 	out, err := pkg.Shellf("git log %d", count)
+	return &out, err
+}
+
+func GetLastCommitNames(count int) (*string, error) {
+	out, err := pkg.Shell("git log --pretty=format:%s " + strconv.Itoa(count))
 	return &out, err
 }
 
