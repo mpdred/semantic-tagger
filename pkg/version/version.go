@@ -105,7 +105,7 @@ func (v *Version) IncrementAuto() *ChangeType {
 			return &cType
 		}
 	}
-	log.Println("version increment skipped: semver keywords missing from latest commit")
+	log.Fatal("version increment skipped: semver keywords missing from latest commit")
 	return nil
 }
 

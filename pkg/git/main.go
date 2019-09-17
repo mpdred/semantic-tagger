@@ -11,10 +11,7 @@ import (
 func Commit(msg string) {
 	out, err := pkg.Shellf("git commit -m %q", msg)
 	if err != nil {
-		if strings.Contains(err.Error(), "nothing to commit") {
-			return
-		}
-		log.Fatal(err)
+		fmt.Println(err)
 	}
 	fmt.Println(out)
 }
@@ -65,4 +62,12 @@ func GetBuildNumber() (*string, error) {
 func GetLastCommits(count int) (*string, error) {
 	out, err := pkg.Shellf("git log %d", count)
 	return &out, err
+}
+
+func Fetch() {
+	out, err := pkg.Shell("git fetch")
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println(out)
 }
