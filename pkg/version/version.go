@@ -99,6 +99,14 @@ func (v *Version) IncrementAuto() *ChangeType {
 	if err != nil {
 		log.Fatal(err)
 	}
+	commitMsg, err := git.GetLastCommitNames(-1)
+	if err != nil {
+		log.Fatal(err)
+	}
+	if strings.Contains(*commitMsg, "ver inc") {
+		log.Println("version increment skipped: version has already been incremented")
+		return nil
+	}
 	for _, cType := range []ChangeType{BREAKING, FEATURE, PATCH} {
 		if strings.Contains(*out, cType.String()) {
 			v.Increment(cType)

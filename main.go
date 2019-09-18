@@ -4,8 +4,6 @@ import (
 	"flag"
 	"fmt"
 	"log"
-	"os"
-	"strings"
 
 	"semtag/pkg/docker"
 	"semtag/pkg/git"
@@ -58,10 +56,6 @@ func main() {
 		commitMsg, err := git.GetLastCommitNames(-1)
 		if err != nil {
 			log.Fatal(err)
-		}
-		if strings.Contains(*commitMsg, "ver inc") {
-			log.Println("version has already been incremented, exiting...")
-			os.Exit(0)
 		}
 		newContents := f.ReplaceSubstring()
 		log.Println("new file contents\n", *newContents)
