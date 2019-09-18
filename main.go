@@ -36,7 +36,7 @@ func parseFlags() {
 
 func main() {
 	parseFlags()
-	git.Pull()
+	git.Fetch()
 
 	var ver, nextVer version.Version
 	ver.Suffix = suffix
