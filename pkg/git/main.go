@@ -10,9 +10,9 @@ import (
 )
 
 func Commit(msg string) {
-	out, err := pkg.Shellf("git commit -m %q", msg)
+	out, err := pkg.Shellf("git commit -m %q ", msg)
 	if err != nil {
-		fmt.Println(err)
+		log.Fatal(err)
 	}
 	fmt.Println(out)
 }
@@ -25,7 +25,11 @@ func Add(file string) {
 	fmt.Println(out)
 }
 
-func Push(target string) {
+func Push() {
+	PushTarget("")
+}
+
+func PushTarget(target string) {
 	out, err := pkg.Shell("git push origin " + target)
 	if err != nil {
 		log.Fatal(err)
@@ -71,7 +75,15 @@ func GetLastCommitNames(count int) (*string, error) {
 }
 
 func Fetch() {
-	out, err := pkg.Shell("git fetch")
+	out, err := pkg.Shell("git fetch origin")
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println(out)
+}
+
+func Pull() {
+	out, err := pkg.Shell("git pull origin")
 	if err != nil {
 		log.Fatal(err)
 	}

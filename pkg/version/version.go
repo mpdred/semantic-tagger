@@ -1,6 +1,7 @@
 package version
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"strconv"
@@ -94,27 +95,18 @@ func (v *Version) AsList() []string {
 	return list
 }
 
-func (v *Version) IncrementAuto() *ChangeType {
+func (v *Version) IncrementAuto() error {
 	out, err := git.GetLastCommits(-1)
 	if err != nil {
 		log.Fatal(err)
 	}
-	commitMsg, err := git.GetLastCommitNames(-1)
-	if err != nil {
-		log.Fatal(err)
-	}
-	if strings.Contains(*commitMsg, "ver inc") {
-		log.Println("version increment skipped: version has already been incremented")
-		return nil
-	}
 	for _, cType := range []ChangeType{BREAKING, FEATURE, PATCH} {
 		if strings.Contains(*out, cType.String()) {
 			v.Increment(cType)
-			return &cType
+			return nil
 		}
 	}
-	log.Fatal("version increment skipped: semver keywords missing from latest commit")
-	return nil
+	return errors.New("version increment skipped: semver keywords missing from latest commit")
 }
 
 func (v *Version) Increment(cType ChangeType) {

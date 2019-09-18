@@ -2,8 +2,8 @@ package main
 
 import (
 	"flag"
-	"fmt"
 	"log"
+	"os"
 
 	"semtag/pkg/docker"
 	"semtag/pkg/git"
@@ -20,6 +20,7 @@ var (
 )
 
 func parseFlags() {
+	log.Println(os.Args)
 	flag.StringVar(&tag, "tag", "", "tag choices: file | git | docker")
 	flag.StringVar(&in, "in", "", `input data: can be either 1) a docker image .tar file without the file extension (e.g. "api") or 2) a file that contains the version number (e.g. "setup.py")`)
 	flag.StringVar(&out, "out", "", `output: can be either 1) a docker repository or 2) the pattern for the file version (e.g. "version='%s',")`)
@@ -35,7 +36,7 @@ func parseFlags() {
 
 func main() {
 	parseFlags()
-	git.Fetch()
+	git.Pull()
 
 	var ver, nextVer version.Version
 	ver.Suffix = suffix
@@ -43,7 +44,9 @@ func main() {
 	ver = *ver.GetLatest()
 	log.Println("current version:", ver.String())
 	nextVer = *ver.GetLatest()
-	changeType := nextVer.IncrementAuto()
+	if err := nextVer.IncrementAuto(); err != nil {
+		log.Fatal(err)
+	}
 	log.Println("next version:", nextVer.String())
 
 	switch tag {
@@ -53,17 +56,17 @@ func main() {
 			VersionFormat: out,
 			Version:       nextVer.String(),
 		}
-		commitMsg, err := git.GetLastCommitNames(-1)
-		if err != nil {
-			log.Fatal(err)
-		}
 		newContents := f.ReplaceSubstring()
-		log.Println("new file contents\n", *newContents)
+		log.Println("tagging file:", f, "\n", *newContents)
+		f.Write(newContents)
 		if !dryRun {
-			f.Write(newContents)
 			git.Add(in)
-			git.Commit(fmt.Sprintf("%s ver inc: %s %s", *commitMsg, nextVer.String(), changeType.String()))
-			git.Push("")
+			msg, err := git.GetLastCommitNames(-1)
+			if err != nil {
+				log.Fatal(err)
+			}
+			git.Commit(*msg + " [skip ci]")
+			git.Push()
 		}
 
 	case "git":
@@ -71,7 +74,7 @@ func main() {
 			Name: nextVer.String(),
 		}
 		tag.SetMessage()
-		log.Println("new git tag:", tag)
+		log.Println("tagging git:", tag)
 		if !dryRun {
 			tag.Push()
 		}
@@ -83,13 +86,13 @@ func main() {
 			Tags:                ver.AsList(),
 			ContainerRepository: out,
 		}
-		log.Println("new docker image tags", img)
+		log.Println("tagging docker image:", img)
 		if !dryRun {
 			img.Tag()
 			img.Push()
 		}
 	default:
-		log.Printf("not implemented for %q\n", tag)
+		log.Printf("not implemented for `-tag` value %q\n", tag)
 		flag.PrintDefaults()
 	}
 }
