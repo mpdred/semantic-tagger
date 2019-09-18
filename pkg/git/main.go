@@ -74,14 +74,6 @@ func GetLastCommitNames(count int) (*string, error) {
 	return &out, err
 }
 
-func Fetch() {
-	out, err := pkg.Shell("git fetch origin")
-	if err != nil {
-		log.Fatal(err)
-	}
-	fmt.Println(out)
-}
-
 func Pull() {
 	out, err := pkg.Shell("git pull origin")
 	if err != nil {
