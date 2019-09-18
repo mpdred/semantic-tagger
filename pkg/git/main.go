@@ -3,17 +3,15 @@ package git
 import (
 	"fmt"
 	"log"
+	"strconv"
 	"strings"
 
 	"semtag/pkg"
 )
 
 func Commit(msg string) {
-	out, err := pkg.Shellf("git commit -m %q", msg)
+	out, err := pkg.Shellf("git commit -m %q ", msg)
 	if err != nil {
-		if strings.Contains(err.Error(), "nothing to commit") {
-			return
-		}
 		log.Fatal(err)
 	}
 	fmt.Println(out)
@@ -27,7 +25,11 @@ func Add(file string) {
 	fmt.Println(out)
 }
 
-func Push(target string) {
+func Push() {
+	PushTarget("")
+}
+
+func PushTarget(target string) {
 	out, err := pkg.Shell("git push origin " + target)
 	if err != nil {
 		log.Fatal(err)
@@ -65,4 +67,17 @@ func GetBuildNumber() (*string, error) {
 func GetLastCommits(count int) (*string, error) {
 	out, err := pkg.Shellf("git log %d", count)
 	return &out, err
+}
+
+func GetLastCommitNames(count int) (*string, error) {
+	out, err := pkg.Shell("git log --pretty=format:%s " + strconv.Itoa(count))
+	return &out, err
+}
+
+func Fetch() {
+	out, err := pkg.Shell("git fetch origin")
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println(out)
 }

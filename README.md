@@ -25,7 +25,7 @@ example:
 # sample setup.py
 cat setup.py
 # update setup.py
-./semtag -file -in setup.py -out "version='%s',"
+./semtag -tag file -in setup.py -out "version='%s',"
 ```
 > setup(
 <br>    name='my-project',
@@ -50,7 +50,7 @@ cat setup.py
 example:
 ```bash
 # existing git tag: v3.0.28
-./semtag -git -prefix v
+./semtag -tag git -prefix v
 ```
 > 2019/09/14 23:41:29 current version: v3.0.28
 <br>2019/09/14 23:41:29 next version: v3.0.29
@@ -69,7 +69,7 @@ example:
 
 example:
 ```bash
-./semtag -docker -in alpine -out "MY_DOCKER_REGISTRY/app"
+./semtag -tag docker -in alpine -out "MY_DOCKER_REGISTRY/app"
 ```
 > 2019/09/14 23:41:33 current version: 3.0.29
 <br>2019/09/14 23:41:33 next version: 3.0.30

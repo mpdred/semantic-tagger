@@ -21,5 +21,5 @@ func (t *TagObj) Push() {
 		t.SetMessage()
 	}
 	Tag(t.Name, t.Message)
-	Push(t.Name)
+	PushTarget(t.Name)
 }
