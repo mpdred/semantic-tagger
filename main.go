@@ -22,7 +22,7 @@ var (
 	skipInc bool
 )
 
-const commitMsgVerBump = "ver bump"
+const commitMsgVerBump = "(v_bmp)"
 
 func parseFlags() {
 	flag.StringVar(&tag, "tag", "", "tag choices: file | git | docker")
@@ -48,20 +48,12 @@ func main() {
 
 	switch tag {
 	case "file":
-		out, err := git.GetLastCommitNames(-1)
-		if err != nil {
-			log.Fatal(err)
-		}
-		if strings.Contains(*out, commitMsgVerBump) {
-			log.Fatal("version already incremented ; exiting")
-		}
 		tagFile(nextVer)
 	case "git":
 		tagGit(nextVer)
 	case "docker":
 		tagDocker(ver)
 	default:
-		log.Printf("not implemented for `-tag` value %q\n", tag)
 		flag.PrintDefaults()
 	}
 }
@@ -89,7 +81,15 @@ func tagFile(ver *version.Version) {
 		VersionFormat: out,
 		Version:       ver.String(),
 	}
+	out, err := git.GetLastCommitNames(-1)
+	if err != nil {
+		log.Fatal(err)
+	}
+	if strings.Contains(*out, commitMsgVerBump) {
+		log.Fatal("version already incremented ; exiting")
+	}
 	newContents := f.ReplaceSubstring()
+
 	log.Println("tagging file:", f, "\n", *newContents)
 	f.Write(newContents)
 	if !dryRun {
