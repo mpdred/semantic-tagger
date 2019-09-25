@@ -1,7 +1,6 @@
 package version
 
 import (
-	"errors"
 	"fmt"
 	"log"
 	"strconv"
@@ -95,18 +94,21 @@ func (v *Version) AsList() []string {
 	return list
 }
 
-func (v *Version) IncrementAuto() error {
+func (v *Version) IncrementAuto() {
 	out, err := git.GetLastCommits(-1)
 	if err != nil {
 		log.Fatal(err)
 	}
 	for _, cType := range []ChangeType{BREAKING, FEATURE, PATCH} {
 		if strings.Contains(*out, cType.String()) {
+			log.Printf("increment %s version\n", cType.String())
 			v.Increment(cType)
-			return nil
+			return
 		}
 	}
-	return errors.New("version increment skipped: semver keywords missing from latest commit")
+	defaultInc := ChangeType(PATCH)
+	log.Printf("increment %s version as default: semver keywords missing from latest commit\n", defaultInc.String())
+	v.Increment(defaultInc)
 }
 
 func (v *Version) Increment(cType ChangeType) {

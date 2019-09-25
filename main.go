@@ -63,14 +63,13 @@ func getVersions() (*version.Version, *version.Version) {
 	ver.Suffix = suffix
 	ver.Prefix = prefix
 	ver = *ver.GetLatest()
+	log.Println("current version:", ver.String())
 	if skipInc {
+		log.Println("skip version increment: flag set by user")
 		return &ver, &ver
 	}
-	log.Println("current version:", ver.String())
 	nextVer = *ver.GetLatest()
-	if err := nextVer.IncrementAuto(); err != nil {
-		log.Fatal(err)
-	}
+	nextVer.IncrementAuto()
 	log.Println("next version:", nextVer.String())
 	return &ver, &nextVer
 }
@@ -86,11 +85,11 @@ func tagFile(ver *version.Version) {
 		log.Fatal(err)
 	}
 	if strings.Contains(*out, commitMsgVerBump) {
-		log.Fatal("version already incremented ; exiting")
+		log.Fatal("skip version increment: already incremented")
 	}
 	newContents := f.ReplaceSubstring()
 
-	log.Println("tagging file:", f, "\n", *newContents)
+	log.Println("tag file:", f, "\n", *newContents)
 	f.Write(newContents)
 	if !dryRun {
 		git.Add(in)
@@ -108,7 +107,7 @@ func tagGit(ver *version.Version) {
 		Name: ver.String(),
 	}
 	tag.SetMessage()
-	log.Println("tagging git:", tag)
+	log.Println("tag git:", tag)
 	if !dryRun {
 		tag.Push()
 	}
@@ -121,7 +120,7 @@ func tagDocker(ver *version.Version) {
 		Tags:                ver.AsList(),
 		ContainerRepository: out,
 	}
-	log.Println("tagging docker image:", img)
+	log.Println("tag docker image:", img)
 	if !dryRun {
 		img.Tag()
 		img.Push()

@@ -16,7 +16,7 @@ func (img *Image) getRemoteNames() *[]string {
 		rName := fmt.Sprintf("%s:%s", img.ContainerRepository, ver)
 		remoteNames = append(remoteNames, rName)
 	}
-	rNameLatest := fmt.Sprintf("%s:%s", img.ContainerRepository, "latest")
+	rNameLatest := fmt.Sprintf("%s:%s-%s", img.ContainerRepository, "latest", img.Name)
 	remoteNames = append(remoteNames, rNameLatest)
 	return &remoteNames
 }
