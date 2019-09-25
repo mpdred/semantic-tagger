@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"log"
 	"strings"
 
@@ -34,7 +35,6 @@ func parseFlags() {
 	flag.BoolVar(&dryRun, "dry-run", false, "if true, only print the object(s) that would be sent, without sending the data")
 	flag.BoolVar(&skipInc, "skip-inc", false, "if true, do not increment the version number")
 	flag.Parse()
-
 	if dryRun {
 		log.Println("dry run mode enabled")
 	}
@@ -54,7 +54,7 @@ func main() {
 	case "docker":
 		tagDocker(ver)
 	default:
-		flag.PrintDefaults()
+		fmt.Print(nextVer.String())
 	}
 }
 
