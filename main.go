@@ -42,8 +42,8 @@ func parseFlags() {
 
 func main() {
 	parseFlags()
-	git.Fetch()
 
+	git.Fetch()
 	ver, nextVer := getVersions()
 
 	switch tag {
@@ -52,9 +52,9 @@ func main() {
 	case "git":
 		tagGit(nextVer)
 	case "docker":
-		tagDocker(ver)
+		tagDocker(nextVer)
 	default:
-		fmt.Print(nextVer.String())
+		fmt.Print(ver.String())
 	}
 }
 
@@ -66,7 +66,7 @@ func getVersions() (*version.Version, *version.Version) {
 	log.Println("current version:", ver.String())
 	if skipInc {
 		log.Println("skip version increment: flag set by user")
-		return &ver, &ver
+		return &ver, nil
 	}
 	nextVer = *ver.GetLatest()
 	nextVer.IncrementAuto()
