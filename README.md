@@ -1,7 +1,4 @@
-# Semantic Tagger ![Travis CI](https://api.travis-ci.org/mpdred/semantic-tagger.svg?branch=master) ![tag](https://img.shields.io/github/v/release/mpdred/semantic-tagger?include_prereleases)
-[semtag](https://mpdred-public.s3-eu-west-1.amazonaws.com/semtag)
-[semtag-v0](https://mpdred-public.s3-eu-west-1.amazonaws.com/semtag-v0)
-
+# Semantic Tagger ![GitHub Actions](https://img.shields.io/github/workflow/status/mpdred/semantic-tagger/Pipeline/master) ![tag](https://img.shields.io/github/v/tag/mpdred/semantic-tagger) ![last commit](https://img.shields.io/github/last-commit/mpdred/semantic-tagger)
 
 Increments the git repository version based on the latest git tag and latest git commit message.
 
@@ -11,6 +8,10 @@ Checks the latest git commit message for the following keywords and generates th
 - `(minor)` - increments the minor number, and resets the patch number to zero
 - `(patch)` or none - increments the patch number
 
+
+## download links
+[latest](https://mpdred-public.s3-eu-west-1.amazonaws.com/semtag)
+[v0](https://mpdred-public.s3-eu-west-1.amazonaws.com/semtag-v0)
 
 ## build
 ```bash
