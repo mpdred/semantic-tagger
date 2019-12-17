@@ -1,6 +1,8 @@
 .ONESHELL:
 SHELL = /bin/bash
 
+all: | test build
+
 build:
 	go build -o out/semtag
 
