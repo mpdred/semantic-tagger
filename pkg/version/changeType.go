@@ -3,11 +3,11 @@ package version
 type ChangeType int
 
 const (
-	BREAKING = iota
-	FEATURE
+	MAJOR = iota
+	MINOR
 	PATCH
 )
 
 func (cType *ChangeType) String() string {
-	return []string{"(breaking)", "(feature)", "(patch)"}[*cType]
+	return []string{"(major)", "(minor)", "(patch)"}[*cType]
 }

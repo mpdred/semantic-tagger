@@ -59,34 +59,39 @@ func (v *Version) Parse(version string) {
 
 func (v *Version) String() string {
 	s := fmt.Sprintf("%d.%d.%d", v.Major, v.Minor, v.Patch)
-	if v.Prefix != "" {
-		s = v.Prefix + s
-	}
-	if v.Suffix != "" {
-		s += v.Suffix
-	}
+	s = v.appendPrefix([]string{s})[0]
+	s = v.appendSuffix([]string{s})[0]
 	return s
 }
 
-func (v *Version) AsList() []string {
+func (v *Version) AsList(gitDescribe string) []string {
 	var list []string
-	list = append(list, strings.Replace(git.DescribeLong(), "v", "", 1))
+	list = append(list, strings.Replace(gitDescribe, "v", "", 1))
 	list = append(list, fmt.Sprintf("%d.%d.%d", v.Major, v.Minor, v.Patch))
 	list = append(list, fmt.Sprintf("%d.%d", v.Major, v.Minor))
 	list = append(list, fmt.Sprint(v.Major))
 
-	if v.Prefix != "" {
+	list = v.appendPrefix(list)
+	return v.appendSuffix(list)
+}
+
+func (v *Version) appendSuffix(list []string) []string {
+	if v.Suffix != "" {
 		var list2 []string
 		for _, s := range list {
-			s = v.Prefix + "-" + s
+			s += v.Suffix
 			list2 = append(list2, s)
 		}
 		list = list2
 	}
-	if v.Suffix != "" {
+	return list
+}
+
+func (v *Version) appendPrefix(list []string) []string {
+	if v.Prefix != "" {
 		var list2 []string
 		for _, s := range list {
-			s += "-" + v.Suffix
+			s = v.Prefix + s
 			list2 = append(list2, s)
 		}
 		list = list2
@@ -99,7 +104,7 @@ func (v *Version) IncrementAuto() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	for _, cType := range []ChangeType{BREAKING, FEATURE, PATCH} {
+	for _, cType := range []ChangeType{MAJOR, MINOR, PATCH} {
 		if strings.Contains(*out, cType.String()) {
 			log.Printf("increment %s version\n", cType.String())
 			v.Increment(cType)
@@ -107,17 +112,17 @@ func (v *Version) IncrementAuto() {
 		}
 	}
 	defaultInc := ChangeType(PATCH)
-	log.Printf("increment %s version as default: semver keywords missing from latest commit\n", defaultInc.String())
+	log.Printf("increment %s version as default (semver keywords missing from latest commit)\n", defaultInc.String())
 	v.Increment(defaultInc)
 }
 
 func (v *Version) Increment(cType ChangeType) {
 	switch cType {
-	case BREAKING:
+	case MAJOR:
 		v.Major += 1
 		v.Minor = 0
 		v.Patch = 0
-	case FEATURE:
+	case MINOR:
 		v.Minor += 1
 		v.Patch = 0
 	case PATCH:
