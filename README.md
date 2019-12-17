@@ -1,12 +1,13 @@
 # Semantic Tagger ![Travis CI](https://api.travis-ci.org/mpdred/semantic-tagger.svg?branch=master) ![tag](https://img.shields.io/github/v/release/mpdred/semantic-tagger?include_prereleases)
 
-Increments the git repository version based on the latest git tag and latest git commit message
+
+Increments the git repository version based on the latest git tag and latest git commit message.
 
 
 Checks the latest git commit message for the following keywords and generates the next version number:
-- `(breaking)` - increments the major number, and resets the feature and patch number to zero
-- `(feature)` - increments the minor number, and resets the patch number to zero
-- `(patch)` - increments the patch number
+- `(major)` - increments the major number, and resets the feature and patch number to zero
+- `(minor)` - increments the minor number, and resets the patch number to zero
+- `(patch)` or none - increments the patch number
 
 
 ## build
@@ -62,14 +63,17 @@ example:
 <br>To REDACTED.git
 <br> * [new tag]         v3.0.29 -> v3.0.29
 
+
+Note: For repositories cloned with HTTPS, export environment variables `GIT_USERNAME` and `GIT_PASSWORD` so as to be able to authenticate on git push
+
 ### tag docker image
 - read the target docker tar file path (`docker save <image_name> > <image_name>.tar`), and the remote docker repository
 - tag the docker file with semantic version names
-- push the docker image tags to the remore docker repository
+- push the docker image tags to the remote docker repository
 
 example:
 ```bash
-./semtag -tag docker -in alpine -out "MY_DOCKER_REGISTRY/app"
+./semtag -tag docker -in alpine -out "MY_DOCKER_REGISTRY/app" -prefix v -skip-inc
 ```
 > 2019/09/14 23:41:33 current version: 3.0.29
 <br>2019/09/14 23:41:33 next version: 3.0.30

@@ -34,6 +34,7 @@ func parseFlags() {
 
 	flag.BoolVar(&dryRun, "dry-run", false, "if true, only print the object(s) that would be sent, without sending the data")
 	flag.BoolVar(&skipInc, "skip-inc", false, "if true, do not increment the version number")
+
 	flag.Parse()
 	if dryRun {
 		log.Println("dry run mode enabled")
@@ -42,8 +43,8 @@ func parseFlags() {
 
 func main() {
 	parseFlags()
-	git.Fetch()
 
+	git.Fetch()
 	ver, nextVer := getVersions()
 
 	switch tag {
@@ -52,9 +53,9 @@ func main() {
 	case "git":
 		tagGit(nextVer)
 	case "docker":
-		tagDocker(ver)
+		tagDocker(nextVer)
 	default:
-		fmt.Print(nextVer.String())
+		fmt.Print(ver.String())
 	}
 }
 
@@ -98,7 +99,7 @@ func tagFile(ver *version.Version) {
 			log.Fatal(err)
 		}
 		git.Commit(commitMsgVerBump + ": " + *msg)
-		git.Push()
+		git.Push("--tags")
 	}
 }
 
@@ -117,7 +118,7 @@ func tagDocker(ver *version.Version) {
 	docker.Load(in + ".tar")
 	img := &docker.Image{
 		Name:                in,
-		Tags:                ver.AsList(),
+		Tags:                ver.AsList(git.DescribeLong()),
 		ContainerRepository: out,
 	}
 	log.Println("tag docker image:", img)

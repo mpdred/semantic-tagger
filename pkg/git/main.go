@@ -3,6 +3,7 @@ package git
 import (
 	"fmt"
 	"log"
+	"os"
 	"strconv"
 	"strings"
 
@@ -25,11 +26,20 @@ func Add(file string) {
 	fmt.Println(out)
 }
 
-func Push() {
-	PushTarget("")
-}
-
-func PushTarget(target string) {
+func Push(target string) {
+	gitUsername, isGitUser := os.LookupEnv("GIT_USERNAME")
+	gitPassword, isGitPw := os.LookupEnv("GIT_PASSWORD")
+	if isGitUser && isGitPw {
+		_, err := pkg.Shellf(`git config credential.helper '!f() { sleep 1; echo "username=%v"; echo "password=%v"; }; f'`, gitUsername, gitPassword)
+		if err != nil {
+			log.Fatal(err)
+		}
+		fmt.Printf("add to git credential.helper: %s, $GIT_PASSWORD\n", gitUsername)
+	}
+	if target == "" {
+		target = "--all"
+		log.Println("no target specified; use default target:", target)
+	}
 	out, err := pkg.Shell("git push origin " + target)
 	if err != nil {
 		log.Fatal(err)
