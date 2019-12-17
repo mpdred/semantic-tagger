@@ -11,6 +11,7 @@ test:
 	go tool cover -html=c.out -o coverage.html
 
 tag:
+	git config --list | grep "user.email" || git config --global user.email "ci@foo.com" && git config --global user.name "ci"
 	./out/semtag -tag git -prefix v
 
 upload:

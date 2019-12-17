@@ -1,4 +1,6 @@
 # Semantic Tagger ![Travis CI](https://api.travis-ci.org/mpdred/semantic-tagger.svg?branch=master) ![tag](https://img.shields.io/github/v/release/mpdred/semantic-tagger?include_prereleases)
+[semtag](https://mpdred-public.s3-eu-west-1.amazonaws.com/semtag)
+[semtag-v0](https://mpdred-public.s3-eu-west-1.amazonaws.com/semtag-v0)
 
 
 Increments the git repository version based on the latest git tag and latest git commit message.

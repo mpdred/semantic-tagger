@@ -29,6 +29,9 @@ jobs:
         make build
 
     - name: Tag git
+      env:
+        GIT_USERNAME: ${{ secrets.GIT_USERNAME }}
+        GIT_PASSWORD: ${{ secrets.GIT_PASSWORD }}
       run: |
         make tag
 
