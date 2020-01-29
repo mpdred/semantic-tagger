@@ -4,11 +4,11 @@ import (
 	"flag"
 	"log"
 	"os"
-	"semtag/pkg/version"
 	"strings"
 
 	"semtag/pkg/docker"
 	"semtag/pkg/git"
+	"semtag/pkg/version"
 )
 
 var (
