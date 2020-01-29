@@ -45,7 +45,7 @@ docker save api:latest > api.tar
 > 2020/01/29 23:41:33 current version: 4.0.7
 <br>2020/01/29 23:41:33 next version: 4.0.8
 <br>Loaded image: api:latest
-<br>2020/01/29 23:41:33 &{api [4.0.8-gf65a7df 4.0.8 4.0 4] 215401189223.dkr.ecr.eu-west-1.amazonaws.com/awesome-app}
+<br>2020/01/29 23:41:33 &{api [v4.0.8-gf65a7df-api v4.0.8-api v4.0-api v4-api] 215401189223.dkr.ecr.eu-west-1.amazonaws.com/awesome-app}
 
 ### add new git tag
 - create a local git tag with the next version number
