@@ -55,10 +55,10 @@ func main() {
 	parseFlags()
 
 	git.Fetch()
-	_, nextVer := getVersions()
+	ver, nextVer := getVersions()
 
 	if len(dockerImage) > 0 && len(dockerRepository) > 0 {
-		tagDocker(nextVer)
+		tagDocker(ver)
 	}
 
 	if shouldTagGit {
