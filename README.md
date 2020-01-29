@@ -25,6 +25,49 @@ make build
 ```
 
 ## usage
+### tag docker image
+Parameters:
+- `docker-image`: a Docker image saved as a tar archive (e.g. use `api.tar` for an image saved with `docker save api:latest > api.tar`)
+- `docker-registry`: target Docker repository (e.g. `$MY_DOCKER_REGISTRY/$MY_APP_NAME`)
+
+Tags:
+- full semantic version (e.g. `4.0.8`)
+- semantic version + git sha1 (e.g. `4.0.8-gf65a7df`)
+- semantic version moving tags (e.g. `4.0`, `4`)
+
+example:
+```bash
+export VERSION=4.0.8
+export DOCKER_REGISTRY="215401189223.dkr.ecr.eu-west-1.amazonaws.com/awesome-app"
+docker save api:latest > api.tar
+./semtag -docker-image api.tar -docker-registry $DOCKER_REGISTRY -prefix v -suffix '-api'
+```
+> 2020/01/29 23:41:33 current version: 4.0.8
+<br>Loaded image: api:latest
+<br>2020/01/29 23:41:33 &{api [v4.0.8-gf65a7df-api v4.0.8-api v4.0-api v4-api] 215401189223.dkr.ecr.eu-west-1.amazonaws.com/awesome-app}
+
+### add new git tag
+- create a local git tag with the next version number
+- push the local tag to remote origin
+
+example:
+```bash
+# existing git tag: v3.0.28
+./semtag -tag git -prefix v
+```
+> 2019/09/14 23:41:29 current version: v3.0.28
+<br>2019/09/14 23:41:29 next version: v3.0.29
+<br>2019/09/14 23:41:30 &{v3.0.29 v3.0.28-2-gf65a7df-20190914204130}
+
+> Counting objects: 1, done.
+<br>Writing objects: 100% (1/1), 176 bytes | 176.00 KiB/s, done.
+<br>Total 1 (delta 0), reused 0 (delta 0)
+<br>To REDACTED.git
+<br> * [new tag]         v3.0.29 -> v3.0.29
+
+
+Note: For repositories cloned with HTTPS, export environment variables `GIT_USERNAME` and `GIT_PASSWORD` so as to be able to authenticate on git push
+
 ### update version in file
 - read the target file path, regex for version number
 - update the target file with the next version number
@@ -52,39 +95,3 @@ cat setup.py
 <br>Total 3 (delta 2), reused 0 (delta 0)
 <br>To REDACTED.git
 <br>   91d7888..f65a7df  master -> master
-
-### add new git tag
-- create a local git tag with the next version number
-- push the local tag to remote origin
-
-example:
-```bash
-# existing git tag: v3.0.28
-./semtag -tag git -prefix v
-```
-> 2019/09/14 23:41:29 current version: v3.0.28
-<br>2019/09/14 23:41:29 next version: v3.0.29
-<br>2019/09/14 23:41:30 &{v3.0.29 v3.0.28-2-gf65a7df-20190914204130}
-
-> Counting objects: 1, done.
-<br>Writing objects: 100% (1/1), 176 bytes | 176.00 KiB/s, done.
-<br>Total 1 (delta 0), reused 0 (delta 0)
-<br>To REDACTED.git
-<br> * [new tag]         v3.0.29 -> v3.0.29
-
-
-Note: For repositories cloned with HTTPS, export environment variables `GIT_USERNAME` and `GIT_PASSWORD` so as to be able to authenticate on git push
-
-### tag docker image
-- read the target docker tar file path (`docker save <image_name> > <image_name>.tar`), and the remote docker repository
-- tag the docker file with semantic version names
-- push the docker image tags to the remote docker repository
-
-example:
-```bash
-./semtag -tag docker -in alpine -out "MY_DOCKER_REGISTRY/app" -prefix v -skip-inc
-```
-> 2019/09/14 23:41:33 current version: 3.0.29
-<br>2019/09/14 23:41:33 next version: 3.0.30
-<br>Loaded image: alpine:latest
-<br>2019/09/14 23:41:33 &{alpine [3.0.29-0-gf65a7df 3.0.29 3.0 3] MY_DOCKER_REGISTRY/app}
