@@ -12,32 +12,37 @@ import (
 )
 
 var (
-	tag    string
-	in     string
-	out    string
-	suffix string
-	prefix string
-)
-var (
 	dryRun  bool
 	skipInc bool
+	suffix  string
+	prefix  string
 )
 
-const commitMsgVerBump = "(v_bmp)"
+var (
+	dockerImage      string
+	dockerRepository string
+	shouldTagGit     bool
+	file             string
+	fileVerPattern   string
+)
 
 func parseFlags() {
-	flag.StringVar(&tag, "tag", "", "tag choices: file | git | docker")
-	flag.StringVar(&in, "in", "", `input data: can be either 1) a docker image .tar file without the file extension (e.g. "api") or 2) a file that contains the version number (e.g. "setup.py")`)
-	flag.StringVar(&out, "out", "", `output: can be either 1) a docker repository or 2) the pattern for the file version (e.g. "version='%s',")`)
+	flag.BoolVar(&dryRun, "dry-run", false, "if set, only print the object(s) that would be sent, without sending the data")
+	flag.BoolVar(&skipInc, "skip-increment", false, "if set, do not increment the version number")
 	flag.StringVar(&suffix, "suffix", "", `if set, append the suffix to the version number (e.g. "0.1.0-rc")`)
 	flag.StringVar(&prefix, "prefix", "", `if set, append the prefix to the version number (e.g. "api-0.1.0")`)
 
-	flag.BoolVar(&dryRun, "dry-run", false, "if true, only print the object(s) that would be sent, without sending the data")
-	flag.BoolVar(&skipInc, "skip-increment", false, "if true, do not increment the version number")
+	flag.StringVar(&dockerImage, "docker-image", "", "a Docker image saved as a tar archive (e.g. use `api.tar` for an image saved with `docker save api:latest > api.tar`)")
+	flag.StringVar(&dockerRepository, "docker-repository", "", "target Docker repository (e.g. '$MY_DOCKER_REGISTRY/$MY_APP_NAME')")
+
+	flag.BoolVar(&shouldTagGit, "git-tag", false, "if set, create an annotated tag")
+
+	flag.StringVar(&file, "file", "", `a file that contains the version number (e.g. "setup.py")`)
+	flag.StringVar(&fileVerPattern, "file-version-pattern", "", `the pattern expected for the file version (e.g. "version='%s',")`)
 
 	flag.Parse()
-	if tag == "" {
-		log.Println("Parameter `tag` not found. Please see usage:")
+	if len(os.Args) == 1 {
+		log.Println("Please see usage:")
 		flag.PrintDefaults()
 		os.Exit(101)
 	}
@@ -52,13 +57,16 @@ func main() {
 	git.Fetch()
 	_, nextVer := getVersions()
 
-	switch tag {
-	case "file":
-		tagFile(nextVer)
-	case "git":
-		tagGit(nextVer)
-	case "docker":
+	if len(dockerImage) > 0 && len(dockerRepository) > 0 {
 		tagDocker(nextVer)
+	}
+
+	if shouldTagGit {
+		tagGit(nextVer)
+	}
+
+	if len(file) > 0 && len(fileVerPattern) > 0 {
+		tagFile(nextVer)
 	}
 }
 
@@ -78,31 +86,17 @@ func getVersions() (*version.Version, *version.Version) {
 	return &v, &nextV
 }
 
-func tagFile(ver *version.Version) {
-	f := version.File{
-		Path:          in,
-		VersionFormat: out,
-		Version:       ver.String(),
+func tagDocker(ver *version.Version) {
+	docker.Load(dockerImage)
+	img := &docker.Image{
+		Name:                strings.Replace(dockerImage, ".tar", "", 1),
+		Tags:                ver.AsList(git.DescribeLong()),
+		ContainerRepository: dockerRepository,
 	}
-	out, err := git.GetLastCommitNames(-1)
-	if err != nil {
-		log.Fatal(err)
-	}
-	if strings.Contains(*out, commitMsgVerBump) {
-		log.Fatal("skip version increment: already incremented")
-	}
-	newContents := f.ReplaceSubstring()
-
-	log.Println("tag file:", f, "\n", *newContents)
-	f.Write(newContents)
+	log.Println("tag docker image:", img)
 	if !dryRun {
-		git.Add(in)
-		msg, err := git.GetLastCommitNames(-1)
-		if err != nil {
-			log.Fatal(err)
-		}
-		git.Commit(commitMsgVerBump + ": " + *msg)
-		git.Push("--tags")
+		img.Tag()
+		img.Push()
 	}
 }
 
@@ -117,16 +111,31 @@ func tagGit(ver *version.Version) {
 	}
 }
 
-func tagDocker(ver *version.Version) {
-	docker.Load(in + ".tar")
-	img := &docker.Image{
-		Name:                in,
-		Tags:                ver.AsList(git.DescribeLong()),
-		ContainerRepository: out,
+func tagFile(ver *version.Version) {
+	const commitMsgVerBump = "(v_bmp)"
+	f := version.File{
+		Path:          file,
+		VersionFormat: fileVerPattern,
+		Version:       ver.String(),
 	}
-	log.Println("tag docker image:", img)
+	out, err := git.GetLastCommitNames(-1)
+	if err != nil {
+		log.Fatal(err)
+	}
+	if strings.Contains(*out, commitMsgVerBump) {
+		log.Fatal("skip version increment: already incremented")
+	}
+	newContents := f.ReplaceSubstring()
+
+	log.Println("tag file:", f, "\n", *newContents)
+	f.Write(newContents)
 	if !dryRun {
-		img.Tag()
-		img.Push()
+		git.Add(file)
+		msg, err := git.GetLastCommitNames(-1)
+		if err != nil {
+			log.Fatal(err)
+		}
+		git.Commit(commitMsgVerBump + ": " + *msg)
+		git.Push("--tags")
 	}
 }

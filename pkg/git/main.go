@@ -55,10 +55,19 @@ func Tag(tag string, message string) {
 	fmt.Println(out)
 }
 
+func RevParse() string {
+	out, err := pkg.Shell("git rev-parse --short HEAD")
+	if err != nil {
+		log.Fatal(err)
+	}
+	out = strings.Replace(out, "\n", "", -1)
+	return out
+}
+
 func DescribeLong() string {
 	out, err := pkg.Shell("git describe --tags --long --dirty --always")
 	if err != nil {
-		log.Fatal(err)
+		return RevParse()
 	}
 	out = strings.Replace(out, "\n", "", -1)
 	return out
