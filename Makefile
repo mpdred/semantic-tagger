@@ -12,7 +12,7 @@ test:
 
 tag:
 	git config --list | grep "user.email" || git config --global user.email "ci@foo.com" && git config --global user.name "ci"
-	./out/semtag -tag git -prefix v
+	./out/semtag -git-tag -prefix v
 
 upload:
 	cp -v out/semtag out/semtag-$$(git describe --tags `git rev-list --tags --max-count=1` | cut -d '.' -f1)
