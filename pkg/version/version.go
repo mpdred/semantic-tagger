@@ -126,7 +126,6 @@ func (v *Version) IncrementAuto() {
 	for _, cType := range []ChangeType{MAJOR, MINOR, PATCH} {
 		if strings.Contains(*out, "change="+cType.String()) {
 			changeType = cType
-			return
 		}
 	}
 	log.Printf("increment %s version number", changeType.String())
