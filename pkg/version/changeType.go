@@ -9,5 +9,5 @@ const (
 )
 
 func (cType *ChangeType) String() string {
-	return []string{"(major)", "(minor)", "(patch)"}[*cType]
+	return []string{"major", "minor", "patch"}[*cType]
 }

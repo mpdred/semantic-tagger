@@ -1,16 +1,22 @@
 # Semantic Tagger ![GitHub Actions](https://img.shields.io/github/workflow/status/mpdred/semantic-tagger/Pipeline/master) ![tag](https://img.shields.io/github/v/tag/mpdred/semantic-tagger) ![last commit](https://img.shields.io/github/last-commit/mpdred/semantic-tagger)
 
-Increments the git repository version based on the latest git tag and latest git commit message.
+Increment a version number as per [Semantic Versioning 2.0.0 specifications](https://semver.org/)
 
+You can provide the current version by defining an environment variable `VERSION`.
+```bash
+export VERSION=4.0.7
+```
+If the environment variable is not found, git tags will be checked to see if they contain a version string as defined at https://semver.org/
 
-Checks the latest git commit message for the following keywords and generates the next version number:
-- `(major)` - increments the major number, and resets the feature and patch number to zero
-- `(minor)` - increments the minor number, and resets the patch number to zero
-- `(patch)` or none - increments the patch number
+To determine the type of change, the latest commit message will be checked for the following keywords:
+- `change=major` - increments the major number, and resets the feature and patch number to zero (e.g. 4.0.7 -> 5.0.0)
+- `change=minor` - increments the minor number, and resets the patch number to zero (e.g. 4.0.7 -> 4.1.0)
+- `change=patch` or no keyword specified - increments the patch number (e.g. 4.0.7 -> 4.0.8)
 
 
 ## download links
 [latest](https://mpdred-public.s3-eu-west-1.amazonaws.com/semtag)
+
 [v0](https://mpdred-public.s3-eu-west-1.amazonaws.com/semtag-v0)
 
 ## build

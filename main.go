@@ -2,13 +2,13 @@ package main
 
 import (
 	"flag"
-	"fmt"
 	"log"
+	"os"
+	"semtag/pkg/version"
 	"strings"
 
 	"semtag/pkg/docker"
 	"semtag/pkg/git"
-	"semtag/pkg/version"
 )
 
 var (
@@ -33,9 +33,14 @@ func parseFlags() {
 	flag.StringVar(&prefix, "prefix", "", `if set, append the prefix to the version number (e.g. "api-0.1.0")`)
 
 	flag.BoolVar(&dryRun, "dry-run", false, "if true, only print the object(s) that would be sent, without sending the data")
-	flag.BoolVar(&skipInc, "skip-inc", false, "if true, do not increment the version number")
+	flag.BoolVar(&skipInc, "skip-increment", false, "if true, do not increment the version number")
 
 	flag.Parse()
+	if tag == "" {
+		log.Println("Parameter `tag` not found. Please see usage:")
+		flag.PrintDefaults()
+		os.Exit(101)
+	}
 	if dryRun {
 		log.Println("dry run mode enabled")
 	}
@@ -45,7 +50,7 @@ func main() {
 	parseFlags()
 
 	git.Fetch()
-	ver, nextVer := getVersions()
+	_, nextVer := getVersions()
 
 	switch tag {
 	case "file":
@@ -54,25 +59,23 @@ func main() {
 		tagGit(nextVer)
 	case "docker":
 		tagDocker(nextVer)
-	default:
-		fmt.Print(ver.String())
 	}
 }
 
 func getVersions() (*version.Version, *version.Version) {
-	var ver, nextVer version.Version
-	ver.Suffix = suffix
-	ver.Prefix = prefix
-	ver = *ver.GetLatest()
-	log.Println("current version:", ver.String())
+	var v, nextV version.Version
+	v.Suffix = suffix
+	v.Prefix = prefix
+	v = *v.GetLatest()
+	log.Println("version:", v.String())
 	if skipInc {
 		log.Println("skip version increment: flag set by user")
-		return &ver, &ver
+		return &v, &v
 	}
-	nextVer = *ver.GetLatest()
-	nextVer.IncrementAuto()
-	log.Println("next version:", nextVer.String())
-	return &ver, &nextVer
+	nextV = *v.GetLatest()
+	nextV.IncrementAuto()
+	log.Println("next version:", nextV.String())
+	return &v, &nextV
 }
 
 func tagFile(ver *version.Version) {

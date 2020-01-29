@@ -3,6 +3,7 @@ package version
 import (
 	"fmt"
 	"log"
+	"os"
 	"strconv"
 	"strings"
 
@@ -19,21 +20,38 @@ type Version struct {
 }
 
 func (v *Version) GetLatest() *Version {
-	tag, err := git.GetLatestTag()
-	if err != nil {
-		fmt.Println(err)
-		v.Parse("0.1.0")
+	const VAR string = "VERSION"
+	val, isFound := os.LookupEnv(VAR)
+
+	var latest string
+	if isFound {
+		if len(val) == 0 {
+			log.Fatalf("Environment variable `%s` is defined but its value is empty!", VAR)
+		}
+		latest = val
 	} else {
-		latest := strings.Split(*tag, "-")[0]
-		latest = strings.Replace(latest, "\n", "", -1)
-		latest = strings.Replace(latest, "v", "", 1)
-		v.Parse(latest)
+		tag, err := git.GetLatestTag()
+		if err != nil {
+			log.Println(err)
+		} else {
+			latest = *tag
+		}
 	}
+
+	if latest == "" {
+		latest = "0.1.0"
+	}
+
+	v.Parse(latest)
 	return v
 }
 
 func (v *Version) Parse(version string) {
 	var err error
+	version = strings.Split(version, "-")[0]
+	version = strings.Replace(version, "\n", "", -1)
+	version = strings.Replace(version, "v", "", 1)
+
 	vSplit := strings.Split(version, ".")
 	v.Major, err = strconv.Atoi(vSplit[0])
 	if err != nil {
@@ -104,16 +122,15 @@ func (v *Version) IncrementAuto() {
 	if err != nil {
 		log.Fatal(err)
 	}
+	changeType := ChangeType(PATCH)
 	for _, cType := range []ChangeType{MAJOR, MINOR, PATCH} {
-		if strings.Contains(*out, cType.String()) {
-			log.Printf("increment %s version\n", cType.String())
-			v.Increment(cType)
+		if strings.Contains(*out, "change="+cType.String()) {
+			changeType = cType
 			return
 		}
 	}
-	defaultInc := ChangeType(PATCH)
-	log.Printf("increment %s version as default (semver keywords missing from latest commit)\n", defaultInc.String())
-	v.Increment(defaultInc)
+	log.Printf("increment %s version number", changeType.String())
+	v.Increment(changeType)
 }
 
 func (v *Version) Increment(cType ChangeType) {
