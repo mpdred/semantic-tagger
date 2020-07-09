@@ -82,10 +82,9 @@ func (v *Version) String() string {
 	return s
 }
 
-func (v *Version) AsList(gitDescribe string) []string {
+func (v *Version) AsList(fullSemver string) []string {
 	var list []string
-	list = append(list, strings.Replace(gitDescribe, "v", "", 1))
-	list = append(list, fmt.Sprintf("%d.%d.%d", v.Major, v.Minor, v.Patch))
+	list = append(list, strings.Replace(fullSemver, "v", "", 1))
 	list = append(list, fmt.Sprintf("%d.%d", v.Major, v.Minor))
 	list = append(list, fmt.Sprint(v.Major))
 

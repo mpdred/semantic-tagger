@@ -76,14 +76,14 @@ func getVersions() (*version.Version, *version.Version) {
 	v.Suffix = suffix
 	v.Prefix = prefix
 	v = *v.GetLatest()
-	fmt.Println("version:", v.String())
+	fmt.Println("current_version:", v.String())
 	if skipInc {
 		log.Println("skip version increment: flag set by user")
 		return &v, &v
 	}
 	nextV = *v.GetLatest()
 	nextV.IncrementAuto()
-	fmt.Println("next-version:", nextV.String())
+	fmt.Println("next_version:", nextV.String())
 	return &v, &nextV
 }
 
