@@ -13,10 +13,10 @@ import (
 )
 
 var (
-	dryRun  bool
-	skipInc bool
-	suffix  string
-	prefix  string
+	dryRun           bool
+	incrementVersion bool
+	suffix           string
+	prefix           string
 )
 
 var (
@@ -29,7 +29,7 @@ var (
 
 func parseFlags() {
 	flag.BoolVar(&dryRun, "dry-run", false, "if set, only print the object(s) that would be sent, without sending the data")
-	flag.BoolVar(&skipInc, "skip-increment", false, "if set, do not increment the version number")
+	flag.BoolVar(&incrementVersion, "increment", false, "if set, do increment the version number")
 	flag.StringVar(&suffix, "suffix", "", `if set, append the suffix to the version number (e.g. "0.1.0-rc")`)
 	flag.StringVar(&prefix, "prefix", "", `if set, append the prefix to the version number (e.g. "api-0.1.0")`)
 
@@ -43,12 +43,12 @@ func parseFlags() {
 
 	flag.Parse()
 	if len(os.Args) == 1 {
-		log.Println("Please see usage:")
+		fmt.Println("Please see usage:")
 		flag.PrintDefaults()
 		os.Exit(101)
 	}
 	if dryRun {
-		log.Println("dry run mode enabled")
+		fmt.Println("dry run mode enabled")
 	}
 }
 
@@ -77,10 +77,10 @@ func getVersions() (*version.Version, *version.Version) {
 	v.Prefix = prefix
 	v = *v.GetLatest()
 	fmt.Println("current_version:", v.String())
-	if skipInc {
-		log.Println("skip version increment: flag set by user")
+	if !incrementVersion {
 		return &v, &v
 	}
+
 	nextV = *v.GetLatest()
 	nextV.IncrementAuto()
 	fmt.Println("next_version:", nextV.String())
@@ -94,7 +94,7 @@ func tagDocker(ver *version.Version) {
 		Tags:                ver.AsList(git.DescribeLong()),
 		ContainerRepository: dockerRepository,
 	}
-	log.Println("tag docker image:", img)
+	fmt.Println("tag docker image:", img)
 	if !dryRun {
 		img.Tag()
 		img.Push()
@@ -106,7 +106,7 @@ func tagGit(ver *version.Version) {
 		Name: ver.String(),
 	}
 	tag.SetMessage()
-	log.Println("tag git:", tag)
+	fmt.Println("tag git:", tag)
 	if !dryRun {
 		tag.Push()
 	}
@@ -128,7 +128,7 @@ func tagFile(ver *version.Version) {
 	}
 	newContents := f.ReplaceSubstring()
 
-	log.Println("tag file:", f, "\n", *newContents)
+	fmt.Println("tag file:", f, "\n", *newContents)
 	f.Write(newContents)
 	if !dryRun {
 		git.Add(file)

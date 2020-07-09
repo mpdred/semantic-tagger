@@ -38,7 +38,7 @@ func Push(target string) {
 	}
 	if target == "" {
 		target = "--all"
-		log.Println("no target specified; use default target:", target)
+		fmt.Println("no target specified; use default target:", target)
 	}
 	out, err := pkg.Shell("git push origin " + target)
 	if err != nil {

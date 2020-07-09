@@ -32,7 +32,7 @@ func (v *Version) GetLatest() *Version {
 	} else {
 		tag, err := git.GetLatestTag()
 		if err != nil {
-			log.Println(err)
+			fmt.Println(err)
 		} else {
 			latest = *tag
 		}
@@ -82,9 +82,10 @@ func (v *Version) String() string {
 	return s
 }
 
-func (v *Version) AsList(fullSemver string) []string {
+func (v *Version) AsList(gitDescribe string) []string {
 	var list []string
-	list = append(list, strings.Replace(fullSemver, "v", "", 1))
+	list = append(list, strings.Replace(gitDescribe, "v", "", 1))
+	list = append(list, fmt.Sprintf("%d.%d.%d", v.Major, v.Minor, v.Patch))
 	list = append(list, fmt.Sprintf("%d.%d", v.Major, v.Minor))
 	list = append(list, fmt.Sprint(v.Major))
 
@@ -122,12 +123,13 @@ func (v *Version) IncrementAuto() {
 		log.Fatal(err)
 	}
 	changeType := ChangeType(PATCH)
-	for _, cType := range []ChangeType{MAJOR, MINOR, PATCH} {
-		if strings.Contains(*out, "change="+cType.String()) {
-			changeType = cType
-		}
+	if strings.Contains(*out, "BREAKING CHANGE") {
+		changeType = ChangeType(MAJOR)
 	}
-	log.Printf("increment %s version number", changeType.String())
+	if strings.HasPrefix(*out, "feat:") || strings.HasPrefix(*out, "feat(") {
+		changeType = ChangeType(MINOR)
+	}
+	fmt.Println("increment version number:", changeType.String())
 	v.Increment(changeType)
 }
 
