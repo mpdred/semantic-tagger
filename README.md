@@ -6,6 +6,7 @@ You can provide the current version by defining an environment variable `VERSION
 ```bash
 export VERSION=4.0.7
 ```
+
 If the environment variable is not found, git tags will be checked to see if they contain a version string as defined at https://semver.org/
 
 To determine the type of change, the latest commit message will be checked for the following keywords:
