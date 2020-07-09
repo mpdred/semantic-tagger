@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"log"
 	"os"
 	"strings"
@@ -75,14 +76,14 @@ func getVersions() (*version.Version, *version.Version) {
 	v.Suffix = suffix
 	v.Prefix = prefix
 	v = *v.GetLatest()
-	log.Println("version:", v.String())
+	fmt.Println("version:", v.String())
 	if skipInc {
 		log.Println("skip version increment: flag set by user")
 		return &v, &v
 	}
 	nextV = *v.GetLatest()
 	nextV.IncrementAuto()
-	log.Println("next version:", nextV.String())
+	fmt.Println("next-version:", nextV.String())
 	return &v, &nextV
 }
 
