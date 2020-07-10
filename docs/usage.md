@@ -8,7 +8,7 @@ example:
 ```bash
 # existing git tag: v3.0.28
 
-./semtag -git-tag -prefix v
+./semtag -git-tag -increment -prefix v
 ```
 > 2019/09/14 23:41:29 current version: v3.0.28
 <br>2019/09/14 23:41:29 next version: v3.0.29
@@ -37,7 +37,7 @@ cat setup.py
 <br>  )
 
 ```bash
-./semtag -file setup.py -file-version-pattern "version='%s',"
+./semtag -increment -file setup.py -file-version-pattern "version='%s',"
 ```
 > 2019/09/14 23:41:26 current version: 3.0.28
 <br>2019/09/14 23:41:26 next version: 3.0.29
