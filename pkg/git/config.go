@@ -37,7 +37,8 @@ func trySetGitConfigUserAndEmail() {
 func trySetGitCredentialsSshKey() {
 	host, isHost := os.LookupEnv("GIT_HOSTNAME")
 	sshKey, isSshKey := os.LookupEnv("GIT_SSH_KEY_PRIVATE")
-	if !(isHost && isSshKey) {
+	projectPath, isProjectPath := os.LookupEnv("GIT_PROJECT_PATH")
+	if !(isHost && isSshKey && isProjectPath) {
 		if pkg.DEBUG != "" {
 			fmt.Println("skip setting git to work on SSH: at least one environment variable is missing ['GIT_HOSTNAME, GIT_SSH_KEY_PRIVATE']")
 		}
@@ -68,11 +69,12 @@ func trySetGitCredentialsSshKey() {
 
 	ssh-keyscan %v >> ~/.ssh/known_hosts
 	chmod 644 ~/.ssh/known_hosts
-	git config --global url.ssh://git@%s/.insteadOf https://%s/
-`, host, host, host)
+	git remote set-url --push origin git@gitlab:%s
+`, host, host, host, projectPath)
 	if err != nil {
 		log.Fatal(err)
 	}
+	// git config --global url.ssh://git@%s/.insteadOf https://%s/
 	fmt.Println("changed git global url: HTTPS -> SSH")
 }
 
