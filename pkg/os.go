@@ -7,17 +7,17 @@ import (
 	"strings"
 )
 
-var debug = os.Getenv("DEBUG")
+var DEBUG = os.Getenv("DEBUG")
 
 func Shell(cmd string) (string, error) {
-	const ShellToUse = "sh"
+	const ShellToUse = "bash"
 	c := exec.Command(ShellToUse, "-c", cmd)
-	if debug != "" {
+	if DEBUG != "" {
 		fmt.Println(c.Args)
 	}
 	c.Stderr = os.Stderr
 	out, err := c.Output()
-	if debug != "" {
+	if DEBUG != "" {
 		fmt.Println(string(out))
 	}
 	return strings.Replace(string(out), "\n", "", -1), err

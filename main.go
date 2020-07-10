@@ -55,7 +55,6 @@ func parseFlags() {
 func main() {
 	parseFlags()
 
-	git.Fetch()
 	ver, nextVer := getVersions()
 
 	if len(dockerImage) > 0 && len(dockerRepository) > 0 {
@@ -107,6 +106,7 @@ func tagGit(ver *version.Version) {
 	}
 	tag.SetMessage()
 	fmt.Println("tag git:", tag)
+	git.SetGitConfig()
 	if !dryRun {
 		tag.Push()
 	}
