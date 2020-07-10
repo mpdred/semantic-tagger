@@ -49,9 +49,13 @@ func trySetGitCredentialsSshKey() {
 	which git
 	which ssh-agent
 
-	eval $(ssh-agent -s)
-	echo '%v' | tr -d '\r' | ssh-add - > /dev/null
+	// echo "%s" | tr -d '\r' | ssh-add - > /dev/null
 	test -d ~/.ssh || (mkdir -p ~/.ssh && chmod 700 ~/.ssh)
+	set +x
+	echo "%s" | tr -d '\r' > ~/.ssh/id_rsa
+	set -x
+	eval $(ssh-agent -s)
+    ssh-add ~/.ssh/id_rsa
 	ssh-keyscan %v >> ~/.ssh/known_hosts
 `, sshKey, host)
 	if err != nil {

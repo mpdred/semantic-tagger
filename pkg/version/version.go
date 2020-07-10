@@ -126,7 +126,7 @@ func (v *Version) IncrementAuto() {
 	if strings.Contains(*out, "BREAKING CHANGE") {
 		changeType = ChangeType(MAJOR)
 	}
-	if strings.HasPrefix(*out, "feat:") || strings.HasPrefix(*out, "feat(") {
+	if strings.Contains(*out, "feat:") || strings.Contains(*out, "feat(") {
 		changeType = ChangeType(MINOR)
 	}
 	fmt.Println("increment version number:", changeType.String())
