@@ -49,7 +49,6 @@ func trySetGitCredentialsSshKey() {
 	which git
 	which ssh-agent
 
-	// echo "%s" | tr -d '\r' | ssh-add - > /dev/null
 	test -d ~/.ssh || (mkdir -p ~/.ssh)
 	chmod 700 ~/.ssh
 	set +x
