@@ -9,7 +9,6 @@ import (
 )
 
 func SetGitConfig() {
-	fmt.Println("aaaa----------------------")
 	trySetGitConfigUserAndEmail()
 	trySetGitCredentialsSshKey()
 	trySetGitCredentialsBasicAuth()
@@ -53,6 +52,7 @@ func trySetGitCredentialsSshKey() {
 	chmod 700 ~/.ssh
 	set +x
 	echo "%s" | tr -d '\r' > ~/.ssh/id_rsa
+	chmod 0600 ~/.ssh/id_rsa
 	set -x
 	eval $(ssh-agent -s)
     ssh-add ~/.ssh/id_rsa
