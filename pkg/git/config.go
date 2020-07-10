@@ -9,7 +9,6 @@ import (
 )
 
 func SetGitConfig() {
-	fmt.Println("set git config")
 	trySetGitConfigUserAndEmail()
 	trySetGitCredentialsSshKey()
 	trySetGitCredentialsBasicAuth()
@@ -37,10 +36,11 @@ func trySetGitConfigUserAndEmail() {
 
 func trySetGitCredentialsSshKey() {
 	host, isHost := os.LookupEnv("GIT_HOSTNAME")
+	projectPath, isProjectPath := os.LookupEnv("GIT_PROJECT_PATH")
 	sshKey, isSshKey := os.LookupEnv("GIT_SSH_KEY_PRIVATE")
-	if !(isHost && isSshKey) {
+	if !(isHost && isProjectPath && isSshKey) {
 		if pkg.DEBUG != "" {
-			fmt.Println("skip setting git to work on SSH: at least one environment variable is missing ['GIT_HOSTNAME, GIT_SSH_KEY_PRIVATE']")
+			fmt.Println("skip setting git to work on SSH: at least one environment variable is missing ['GIT_HOSTNAME, GIT_PROJECT_PATH, GIT_SSH_KEY_PRIVATE']")
 		}
 		return
 	}
@@ -49,9 +49,14 @@ func trySetGitCredentialsSshKey() {
 	which git
 	which ssh-agent
 
+	test -d ~/.ssh || (mkdir -p ~/.ssh)
+	chmod 700 ~/.ssh
+	set +x
+	echo "%s" | tr -d '\r' > ~/.ssh/id_rsa
+	chmod 0600 ~/.ssh/id_rsa
+	set -x
 	eval $(ssh-agent -s)
-	echo '%v' | tr -d '\r' | ssh-add - > /dev/null
-	test -d ~/.ssh || (mkdir -p ~/.ssh && chmod 700 ~/.ssh)
+    ssh-add ~/.ssh/id_rsa
 	ssh-keyscan %v >> ~/.ssh/known_hosts
 `, sshKey, host)
 	if err != nil {
@@ -64,12 +69,12 @@ func trySetGitCredentialsSshKey() {
 
 	ssh-keyscan %v >> ~/.ssh/known_hosts
 	chmod 644 ~/.ssh/known_hosts
-	git config --global url.ssh://git@%s/.insteadOf https://%s/
-`, host, host, host)
+	git remote set-url --push origin git@%v:%s.git
+`, host, host, projectPath)
 	if err != nil {
 		log.Fatal(err)
 	}
-	fmt.Println("changed git global url: HTTPS -> SSH")
+	fmt.Println("changed git global push url: HTTPS -> SSH")
 }
 
 func trySetGitCredentialsBasicAuth() {
