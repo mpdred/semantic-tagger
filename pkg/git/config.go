@@ -69,8 +69,8 @@ func trySetGitCredentialsSshKey() {
 
 	ssh-keyscan %v >> ~/.ssh/known_hosts
 	chmod 644 ~/.ssh/known_hosts
-	git remote set-url --push origin git@gitlab:%s
-`, host, projectPath)
+	git remote set-url --push origin git@%v:%s.git
+`, host, host, projectPath)
 	if err != nil {
 		log.Fatal(err)
 	}
