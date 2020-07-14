@@ -3,7 +3,7 @@ SHELL = /bin/bash
 
 all: | test build
 
-build:
+build: | test
 	go build -o out/semtag
 
 test:

@@ -1,7 +1,6 @@
 package docker
 
 import (
-	"fmt"
 	"log"
 
 	"semtag/pkg"
@@ -12,7 +11,7 @@ func Load(tarFile string) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	fmt.Println(out)
+	log.Println(out)
 }
 
 func Tag(image string, remoteImage string) {
@@ -20,7 +19,7 @@ func Tag(image string, remoteImage string) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	fmt.Println(out)
+	log.Println(out)
 }
 
 func Push(image string) {
@@ -28,5 +27,5 @@ func Push(image string) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	fmt.Println(out)
+	log.Println(out)
 }

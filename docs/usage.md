@@ -9,6 +9,7 @@ example:
 # existing git tag: v3.0.28
 
 ./semtag -git-tag -increment -prefix v
+git push
 ```
 > 2019/09/14 23:41:29 current version: v3.0.28
 <br>2019/09/14 23:41:29 next version: v3.0.29
@@ -19,6 +20,43 @@ example:
 <br>Total 1 (delta 0), reused 0 (delta 0)
 <br>To REDACTED.git
 <br> * [new tag]         v3.0.29 -> v3.0.29
+
+
+## add new Git tags for multiple unrelated components in the same repository
+For multiple unrelated components in the same repository, use a combination of `-prefix` and `-suffix` flags; you only need to have a unique tagging format so one flag is enough.
+```bash
+# existing git tags:
+#   v3.0.28-api
+#   v3.1.12-web
+
+./semtag -git-tag -increment -prefix v -suffix -api
+```
+> 2019/09/14 23:41:29 current version: v3.0.28-api
+<br>2019/09/14 23:41:29 next version: v3.0.29-api
+<br>2019/09/14 23:41:30 &{v3.0.29-api v3.0.28-api-2-gf65a7df-20190914204130}
+>
+> Counting objects: 1, done.
+<br>Writing objects: 100% (1/1), 176 bytes | 176.00 KiB/s, done.
+<br>Total 1 (delta 0), reused 0 (delta 0)
+<br>To REDACTED.git
+<br> * [new tag]         v3.0.29-api -> v3.0.29-api
+```bash
+# existing git tags:
+#   v3.0.29-api
+#   v3.1.12-web
+
+./semtag -git-tag -increment -prefix v -suffix -web
+```
+> 2019/09/14 23:42:16 current version: v3.1.12-web
+<br>2019/09/14 23:42:16 next version: v3.1.13-web
+<br>2019/09/14 23:42:17 &{v3.1.13-web v3.1.12-1-d8111g97-20190914204217}
+>
+> Counting objects: 1, done.
+<br>Writing objects: 100% (1/1), 176 bytes | 176.00 KiB/s, done.
+<br>Total 1 (delta 0), reused 0 (delta 0)
+<br>To REDACTED.git
+<br> * [new tag]         v3.1.13-web -> v3.1.13-web
+
 
 
 # update a version string in a file
