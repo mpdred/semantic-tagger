@@ -31,6 +31,8 @@ A `feat`ure increments the minor number, and resets the patch number to zero (e.
 
 All other types increment the patch number (e.g. 4.0.7 -> 4.0.8)
 
+Note: You can have separate tracking by Git tags for multiple components in a repo
+
 
 
 ## Docs

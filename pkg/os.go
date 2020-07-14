@@ -2,6 +2,7 @@ package pkg
 
 import (
 	"fmt"
+	"log"
 	"os"
 	"os/exec"
 	"strings"
@@ -13,12 +14,12 @@ func Shell(cmd string) (string, error) {
 	const ShellToUse = "bash"
 	c := exec.Command(ShellToUse, "-c", cmd)
 	if DEBUG != "" {
-		fmt.Println(c.Args)
+		log.Println(c.Args)
 	}
 	c.Stderr = os.Stderr
 	out, err := c.Output()
 	if DEBUG != "" {
-		fmt.Println(string(out))
+		log.Println(string(out))
 	}
 	return strings.Replace(string(out), "\n", "", -1), err
 }

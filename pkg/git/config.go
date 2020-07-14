@@ -1,7 +1,6 @@
 package git
 
 import (
-	"fmt"
 	"log"
 	"os"
 
@@ -19,7 +18,7 @@ func trySetGitConfigUserAndEmail() {
 	gitUsername, isGitUser := os.LookupEnv("GIT_USERNAME")
 	if !(isGitEmail && isGitUser) {
 		if pkg.DEBUG != "" {
-			fmt.Println("skip setting git email and username: at least one environment variable is missing ['GIT_EMAIL, GIT_USERNAME']")
+			log.Println("skip setting git email and username: at least one environment variable is missing ['GIT_EMAIL, GIT_USERNAME']")
 		}
 		return
 	}
@@ -40,7 +39,7 @@ func trySetGitCredentialsSshKey() {
 	sshKey, isSshKey := os.LookupEnv("GIT_SSH_KEY_PRIVATE")
 	if !(isHost && isProjectPath && isSshKey) {
 		if pkg.DEBUG != "" {
-			fmt.Println("skip setting git to work on SSH: at least one environment variable is missing ['GIT_HOSTNAME, GIT_PROJECT_PATH, GIT_SSH_KEY_PRIVATE']")
+			log.Println("skip setting git to work on SSH: at least one environment variable is missing ['GIT_HOSTNAME, GIT_PROJECT_PATH, GIT_SSH_KEY_PRIVATE']")
 		}
 		return
 	}
@@ -74,7 +73,7 @@ func trySetGitCredentialsSshKey() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	fmt.Println("changed git global push url: HTTPS -> SSH")
+	log.Println("changed git global push url: HTTPS -> SSH")
 }
 
 func trySetGitCredentialsBasicAuth() {
@@ -87,5 +86,5 @@ func trySetGitCredentialsBasicAuth() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	fmt.Printf("add to git credential.helper: %s, $GIT_PASSWORD\n", gitUsername)
+	log.Printf("add to git credential.helper: %s, $GIT_PASSWORD\n", gitUsername)
 }

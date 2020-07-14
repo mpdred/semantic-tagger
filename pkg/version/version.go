@@ -4,9 +4,11 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"regexp"
 	"strconv"
 	"strings"
 
+	"semtag/pkg"
 	"semtag/pkg/git"
 )
 
@@ -20,19 +22,19 @@ type Version struct {
 }
 
 func (v *Version) GetLatest() *Version {
-	const VAR string = "VERSION"
-	val, isFound := os.LookupEnv(VAR)
+	const UserDefinedVersion string = "VERSION"
+	userDefinedVersion, isFound := os.LookupEnv(UserDefinedVersion)
 
 	var latest string
 	if isFound {
-		if len(val) == 0 {
-			log.Fatalf("Environment variable `%s` is defined but its value is empty!", VAR)
+		if len(userDefinedVersion) == 0 {
+			log.Fatalf("Environment variable `%s` is defined but its value is empty!", UserDefinedVersion)
 		}
-		latest = val
+		latest = userDefinedVersion
 	} else {
-		tag, err := git.GetLatestTag()
+		tag, err := git.GetLatestTag(v.Prefix, v.Suffix)
 		if err != nil {
-			fmt.Println(err)
+			log.Println(err)
 		} else {
 			latest = *tag
 		}
@@ -48,9 +50,8 @@ func (v *Version) GetLatest() *Version {
 
 func (v *Version) Parse(version string) {
 	var err error
-	version = strings.Split(version, "-")[0]
-	version = strings.Replace(version, "\n", "", -1)
-	version = strings.Replace(version, "v", "", 1)
+	re := regexp.MustCompile("[0-9]+.[0-9]+.[0-9]+")
+	version = re.FindAllString(version, -1)[0]
 
 	vSplit := strings.Split(version, ".")
 	v.Major, err = strconv.Atoi(vSplit[0])
@@ -65,11 +66,12 @@ func (v *Version) Parse(version string) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	out, err := git.GetBuildNumber()
+
+	buildNumber, err := git.GetBuildNumber()
 	if err != nil {
 		log.Fatal(err)
 	}
-	v.Build, err = strconv.Atoi(*out)
+	v.Build, err = strconv.Atoi(*buildNumber)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -130,7 +132,9 @@ func (v *Version) IncrementAuto() {
 			changeType = ChangeType(MINOR)
 		}
 	}
-	fmt.Println("increment version number:", changeType.String())
+	if pkg.DEBUG != "" {
+		log.Println("increment version number:", changeType.String())
+	}
 	v.Increment(changeType)
 }
 

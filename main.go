@@ -4,16 +4,16 @@ import (
 	"flag"
 	"fmt"
 	"log"
-	"os"
 	"strings"
 
+	"semtag/pkg"
 	"semtag/pkg/docker"
 	"semtag/pkg/git"
 	"semtag/pkg/version"
 )
 
 var (
-	dryRun           bool
+	push             bool
 	incrementVersion bool
 	suffix           string
 	prefix           string
@@ -28,8 +28,8 @@ var (
 )
 
 func parseFlags() {
-	flag.BoolVar(&dryRun, "dry-run", false, "if set, only print the object(s) that would be sent, without sending the data")
-	flag.BoolVar(&incrementVersion, "increment", false, "if set, do increment the version number")
+	flag.BoolVar(&push, "push", false, "if set, push the object(s)")
+	flag.BoolVar(&incrementVersion, "increment", false, "if set, increment the version number")
 	flag.StringVar(&suffix, "suffix", "", `if set, append the suffix to the version number (e.g. "0.1.0-rc")`)
 	flag.StringVar(&prefix, "prefix", "", `if set, append the prefix to the version number (e.g. "api-0.1.0")`)
 
@@ -39,51 +39,42 @@ func parseFlags() {
 	flag.BoolVar(&shouldTagGit, "git-tag", false, "if set, create an annotated tag")
 
 	flag.StringVar(&file, "file", "", `a file that contains the version number (e.g. "setup.py")`)
-	flag.StringVar(&fileVerPattern, "file-version-pattern", "", `the pattern expected for the file version (e.g. "version='%s',")`)
+	flag.StringVar(&fileVerPattern, "file-version-pattern", "%s", `the pattern expected for the file version (e.g. "version='%s',")`)
 
 	flag.Parse()
-	if len(os.Args) == 1 {
-		fmt.Println("Please see usage:")
-		flag.PrintDefaults()
-		os.Exit(101)
-	}
-	if dryRun {
-		fmt.Println("dry run mode enabled")
+	fmt.Println(getVersion().String())
+	if push {
+		log.Println("push mode enabled")
 	}
 }
 
 func main() {
 	parseFlags()
 
-	ver, nextVer := getVersions()
+	v := getVersion()
 
 	if len(dockerImage) > 0 && len(dockerRepository) > 0 {
-		tagDocker(ver)
+		tagDocker(v)
 	}
 
 	if shouldTagGit {
-		tagGit(nextVer)
+		tagGit(v)
 	}
 
 	if len(file) > 0 && len(fileVerPattern) > 0 {
-		tagFile(nextVer)
+		tagFile(v)
 	}
 }
 
-func getVersions() (*version.Version, *version.Version) {
-	var v, nextV version.Version
+func getVersion() *version.Version {
+	var v version.Version
 	v.Suffix = suffix
 	v.Prefix = prefix
 	v = *v.GetLatest()
-	fmt.Println("current_version:", v.String())
-	if !incrementVersion {
-		return &v, &v
+	if incrementVersion {
+		v.IncrementAuto()
 	}
-
-	nextV = *v.GetLatest()
-	nextV.IncrementAuto()
-	fmt.Println("next_version:", nextV.String())
-	return &v, &nextV
+	return &v
 }
 
 func tagDocker(ver *version.Version) {
@@ -93,9 +84,9 @@ func tagDocker(ver *version.Version) {
 		Tags:                ver.AsList(git.DescribeLong()),
 		ContainerRepository: dockerRepository,
 	}
-	fmt.Println("tag docker image:", img)
-	if !dryRun {
-		img.Tag()
+	log.Println("tag docker image:", img)
+	img.Tag()
+	if push {
 		img.Push()
 	}
 }
@@ -105,15 +96,15 @@ func tagGit(ver *version.Version) {
 		Name: ver.String(),
 	}
 	tag.SetMessage()
-	fmt.Println("tag git:", tag)
+	log.Println("tag git:", tag)
 	git.SetGitConfig()
-	if !dryRun {
+	if push {
 		tag.Push()
 	}
 }
 
 func tagFile(ver *version.Version) {
-	const commitMsgVerBump = "(v_bmp)"
+	const commitMsgVerBump = "chore(version): "
 	f := version.File{
 		Path:          file,
 		VersionFormat: fileVerPattern,
@@ -124,14 +115,18 @@ func tagFile(ver *version.Version) {
 		log.Fatal(err)
 	}
 	if strings.Contains(*out, commitMsgVerBump) {
-		log.Fatal("skip version increment: already incremented")
+		log.Println("skip version increment: already incremented")
+		return
 	}
 	newContents := f.ReplaceSubstring()
 
-	fmt.Println("tag file:", f, "\n", *newContents)
+	log.Println("tag file:", f)
+	if pkg.DEBUG != "" {
+		log.Println("\n", *newContents)
+	}
 	f.Write(newContents)
-	if !dryRun {
-		git.Add(file)
+	git.Add(file)
+	if push {
 		msg, err := git.GetLastCommitNames(-1)
 		if err != nil {
 			log.Fatal(err)

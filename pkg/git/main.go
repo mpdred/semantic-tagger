@@ -1,7 +1,6 @@
 package git
 
 import (
-	"fmt"
 	"log"
 	"strconv"
 	"strings"
@@ -14,7 +13,7 @@ func Commit(msg string) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	fmt.Println(out)
+	log.Println(out)
 }
 
 func Add(file string) {
@@ -22,19 +21,19 @@ func Add(file string) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	fmt.Println(out)
+	log.Println(out)
 }
 
 func Push(target string) {
 	if target == "" {
 		target = "--all"
-		fmt.Println("no target specified; use default target:", target)
+		log.Println("no target specified; use default target:", target)
 	}
 	out, err := pkg.Shell("git push origin " + target)
 	if err != nil {
 		log.Fatal(err)
 	}
-	fmt.Println(out)
+	log.Println(out)
 }
 
 func Tag(tag string, message string) {
@@ -42,7 +41,7 @@ func Tag(tag string, message string) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	fmt.Println(out)
+	log.Println(out)
 }
 
 func RevParse() string {
@@ -63,8 +62,16 @@ func DescribeLong() string {
 	return out
 }
 
-func GetLatestTag() (*string, error) {
-	out, err := pkg.Shell(`git describe --tags $(git rev-list --tags --max-count=1)`)
+func GetLatestTag(prefix string, suffix string) (*string, error) {
+	cmd := "git tag"
+	if prefix != "" {
+		cmd += "| grep -i -e " + prefix
+	}
+	if suffix != "" {
+		cmd += "| grep -i -e " + suffix
+	}
+	cmd += "| sort -rn | head -1"
+	out, err := pkg.Shell(cmd)
 	return &out, err
 }
 
@@ -88,5 +95,5 @@ func Fetch() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	fmt.Println(out)
+	log.Println(out)
 }
