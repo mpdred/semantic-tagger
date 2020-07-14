@@ -30,6 +30,7 @@ For multiple unrelated components in the same repository, use a combination of `
 #   v3.1.12-web
 
 ./semtag -git-tag -increment -prefix v -suffix -api
+git push
 ```
 > 2019/09/14 23:41:29 current version: v3.0.28-api
 <br>2019/09/14 23:41:29 next version: v3.0.29-api
