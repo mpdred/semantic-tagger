@@ -2,14 +2,10 @@
 
 Increment a version number as per [Semantic Versioning 2.0.0 specifications](https://semver.org/)
 
-You can provide the current version by defining an environment variable `VERSION`.
-```bash
-export VERSION=4.0.7
-```
 
-If the environment variable is not found, git tags will be checked to see if they contain a version string as defined at https://semver.org/
+If you don't provide the current version, Git tags will be checked to see if they contain a version string as defined at https://semver.org/ 
 
-To determine the type of change, the [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/) rules are used:
+To determine the type of change, the [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/) rules are used (you can override this with a cli argument):
 > The commit message should be structured as follows:
 >
 >  <type>[optional scope]: <description>
@@ -31,11 +27,10 @@ A `feat`ure increments the minor number, and resets the patch number to zero (e.
 
 All other types increment the patch number (e.g. 4.0.7 -> 4.0.8)
 
-Note: You can have separate tracking by Git tags for multiple components in a repo
-
 
 
 ## Docs
 - [how to test/build](docs/build.md) the project
-- [how to use](docs/usage.md) the compiled binary for creating Git tags, Docker images or update version numbers in files
+- what [command line arguments](docs/usage.md) are available
+- [examples](docs/examples.md) of how to use the compiled binary for creating Git tags or update version numbers in files
 - see the page on [Git configuration](docs/git.md) for various configurations when running _Semantic Tagger_ in a CI executor environment (e.g. GitLab, Bitbucket, etc.)
