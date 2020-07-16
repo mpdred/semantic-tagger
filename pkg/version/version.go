@@ -3,13 +3,12 @@ package version
 import (
 	"fmt"
 	"log"
-	"os"
 	"regexp"
 	"strconv"
 	"strings"
 
-	"semtag/pkg"
 	"semtag/pkg/git"
+	"semtag/pkg/output"
 )
 
 type Version struct {
@@ -22,22 +21,13 @@ type Version struct {
 }
 
 func (v *Version) GetLatest() *Version {
-	const UserDefinedVersion string = "VERSION"
-	userDefinedVersion, isFound := os.LookupEnv(UserDefinedVersion)
-
 	var latest string
-	if isFound {
-		if len(userDefinedVersion) == 0 {
-			log.Fatalf("Environment variable `%s` is defined but its value is empty!", UserDefinedVersion)
-		}
-		latest = userDefinedVersion
+
+	tag, err := git.GetLatestTag(v.Prefix, v.Suffix)
+	if err != nil {
+		output.Debug(err)
 	} else {
-		tag, err := git.GetLatestTag(v.Prefix, v.Suffix)
-		if err != nil {
-			log.Println(err)
-		} else {
-			latest = *tag
-		}
+		latest = *tag
 	}
 
 	if latest == "" {
@@ -119,22 +109,22 @@ func (v *Version) appendPrefix(list []string) []string {
 	return list
 }
 
-func (v *Version) IncrementAuto() {
+func (v *Version) IncrementAuto(scope string) {
 	out, err := git.GetLastCommits(-1)
 	if err != nil {
 		log.Fatal(err)
 	}
 	changeType := ChangeType(PATCH)
-	if strings.Contains(*out, "BREAKING CHANGE") {
+	if strings.ToLower(scope) == "major" ||
+		(strings.ToLower(scope) == "" && strings.Contains(*out, "BREAKING CHANGE")) {
 		changeType = ChangeType(MAJOR)
 	} else {
-		if strings.Contains(*out, "feat:") || strings.Contains(*out, "feat(") {
+		if strings.ToLower(scope) == "minor" ||
+			(strings.ToLower(scope) == "" && (strings.Contains(*out, "feat:") || strings.Contains(*out, "feat("))) {
 			changeType = ChangeType(MINOR)
 		}
 	}
-	if pkg.DEBUG != "" {
-		log.Println("increment version number:", changeType.String())
-	}
+	output.Debug("increment version number:", changeType.String())
 	v.Increment(changeType)
 }
 

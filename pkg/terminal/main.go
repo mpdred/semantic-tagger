@@ -1,26 +1,21 @@
-package pkg
+package terminal
 
 import (
 	"fmt"
-	"log"
 	"os"
 	"os/exec"
 	"strings"
+
+	"semtag/pkg/output"
 )
 
-var DEBUG = os.Getenv("DEBUG")
-
 func Shell(cmd string) (string, error) {
-	const ShellToUse = "bash"
+	const ShellToUse = "sh"
 	c := exec.Command(ShellToUse, "-c", cmd)
-	if DEBUG != "" {
-		log.Println(c.Args)
-	}
+	output.Debug(c.Args)
 	c.Stderr = os.Stderr
 	out, err := c.Output()
-	if DEBUG != "" {
-		log.Println(string(out))
-	}
+	output.Debug(string(out))
 	return strings.Replace(string(out), "\n", "", -1), err
 }
 
