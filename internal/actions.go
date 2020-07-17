@@ -71,6 +71,6 @@ func TagFile(ver version.Version, filePath string, versionPattern string, push b
 	}
 	git.Commit(commitMsgVerBump + *msg)
 	if push {
-		git.Push(f.Path)
+		git.Push("")
 	}
 }
