@@ -11,7 +11,7 @@ var debug = os.Getenv("DEBUG")
 
 func Debug(v ...interface{}) {
 	if strings.ToLower(debug) == "true" {
-		Info(v...)
+		log.Println(v...)
 	}
 }
 func DebugF(format string, v ...interface{}) {

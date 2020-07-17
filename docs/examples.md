@@ -8,8 +8,7 @@ example:
 ```bash
 # existing git tag: v3.0.28
 
-./semtag -git-tag -increment auto -prefix v
-git push
+./semtag -git-tag -increment auto -prefix v -push
 ```
 > 2019/09/14 23:41:29 current version: v3.0.28
 <br>2019/09/14 23:41:29 next version: v3.0.29
@@ -29,8 +28,7 @@ For multiple unrelated components in the same repository, use a combination of `
 #   v3.0.28-api
 #   v3.1.12-web
 
-./semtag -git-tag -increment auto -prefix "v" -suffix "-api"
-git push
+./semtag -git-tag -increment auto -prefix "v" -suffix "-api" -push
 ```
 > 2019/09/14 23:41:29 current version: v3.0.28-api
 <br>2019/09/14 23:41:29 next version: v3.0.29-api
@@ -46,7 +44,7 @@ git push
 #   v3.0.29-api
 #   v3.1.12-web
 
-./semtag -git-tag -increment auto -prefix "v"-suffix "-web"
+./semtag -git-tag -increment auto -prefix "v" -suffix "-web"
 ```
 > 2019/09/14 23:42:16 current version: v3.1.12-web
 <br>2019/09/14 23:42:16 next version: v3.1.13-web

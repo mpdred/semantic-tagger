@@ -5,6 +5,8 @@ import (
 	"fmt"
 
 	"semtag/internal"
+	"semtag/pkg/git"
+	"semtag/pkg/output"
 )
 
 func parseFlags() internal.CliArgs {
@@ -19,8 +21,8 @@ func parseFlags() internal.CliArgs {
 
 	flag.BoolVar(&args.ShouldTagGit, "git-tag", false, "if set, create an annotated tag")
 
-	flag.StringVar(&args.FilePath, "filePath", "", `a filePath that contains the version number (e.g. "setup.py")`)
-	flag.StringVar(&args.FileVerPattern, "filePath-version-pattern", "%s", `the pattern expected for the filePath version (e.g. "version='%s',")`)
+	flag.StringVar(&args.FilePath, "file", "", `a file that contains the version number (e.g. "setup.py")`)
+	flag.StringVar(&args.FileVerPattern, "file-version-pattern", "%s", `the pattern expected for the file version (e.g. "version='%s',")`)
 
 	flag.Parse()
 
@@ -40,12 +42,22 @@ func main() {
 		fmt.Print(v.String())
 	}
 
+	git.TrySetGitCredentialsBasicAuth()
+
+	notPushModeMessage := "push to Git skipped: use the `-push` flag to push changes"
+
 	if args.ShouldTagGit {
 		internal.TagGit(v, args.Push)
+		if !args.Push {
+			output.Debug(notPushModeMessage)
+		}
 	}
 
 	shouldTagInFile := len(args.FilePath) > 0 && len(args.FileVerPattern) > 0
 	if shouldTagInFile {
 		internal.TagFile(v, args.FilePath, args.FileVerPattern, args.Push)
+		if !args.Push {
+			output.Debug(notPushModeMessage)
+		}
 	}
 }
