@@ -34,16 +34,19 @@ func Test_Increment(t *testing.T) {
 
 func Test_AsList(t *testing.T) {
 	tables := []struct {
-		gitDescribe  string
+		gitSha       string
 		expectedList []string
 	}{
-		{"v0.2.1-10-g3ed223b", []string{"0.2.1-10-g3ed223b", "0.2.1", "0.2", "0"}},
+		{"g3ed223b", []string{"0.2.1-g3ed223b", "0.2.1", "0.2", "0"}},
 	}
 
-	ver := Version{}
+	ver := Version{
+		UseGit: true,
+	}
 	ver.Parse("0.2.1")
 	for _, tb := range tables {
-		actualList := ver.AsList(tb.gitDescribe)
+		ver.Hash = tb.gitSha
+		actualList := ver.AsList()
 
 		// compare the two slices
 		expLen := len(tb.expectedList)
