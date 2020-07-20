@@ -11,4 +11,6 @@ type CliArgs struct {
 	ShouldTagGit   bool
 	FilePath       string
 	FileVerPattern string
+
+	ExecuteCommand string
 }

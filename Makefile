@@ -5,6 +5,7 @@ all: | test build
 
 build:
 	go build -o out/semtag
+	cp -v out/semtag out/semtag-$$(out/semtag -prefix "v")
 
 test:
 	go test ./... -cover -coverprofile=c.out

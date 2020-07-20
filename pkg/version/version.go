@@ -12,12 +12,14 @@ import (
 )
 
 type Version struct {
+	Prefix string
 	Major  int
 	Minor  int
 	Patch  int
-	Build  int
 	Suffix string
-	Prefix string
+
+	UseGit bool
+	Hash   string
 }
 
 func (v *Version) GetLatest() *Version {
@@ -57,13 +59,8 @@ func (v *Version) Parse(version string) {
 		log.Fatal(err)
 	}
 
-	buildNumber, err := git.GetBuildNumber()
-	if err != nil {
-		log.Fatal(err)
-	}
-	v.Build, err = strconv.Atoi(*buildNumber)
-	if err != nil {
-		log.Fatal(err)
+	if v.UseGit {
+		v.Hash = git.GetHashShort()
 	}
 }
 
@@ -74,9 +71,11 @@ func (v *Version) String() string {
 	return s
 }
 
-func (v *Version) AsList(gitDescribe string) []string {
+func (v *Version) AsList() []string {
 	var list []string
-	list = append(list, strings.Replace(gitDescribe, "v", "", 1))
+	if v.UseGit {
+		list = append(list, fmt.Sprintf("%d.%d.%d-%s", v.Major, v.Minor, v.Patch, v.Hash))
+	}
 	list = append(list, fmt.Sprintf("%d.%d.%d", v.Major, v.Minor, v.Patch))
 	list = append(list, fmt.Sprintf("%d.%d", v.Major, v.Minor))
 	list = append(list, fmt.Sprint(v.Major))

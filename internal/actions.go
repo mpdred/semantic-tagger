@@ -12,7 +12,7 @@ import (
 func GetVersion(args CliArgs) version.Version {
 	var v version.Version
 	if args.CustomVersion != "" {
-		v = getVersionFromUser(args.CustomVersion)
+		v = getVersionFromUser(args.CustomVersion, args.Prefix, args.Suffix)
 	} else {
 		v = getVersionFromGit(args.Prefix, args.Suffix)
 	}
@@ -20,14 +20,17 @@ func GetVersion(args CliArgs) version.Version {
 	return v
 }
 
-func getVersionFromUser(customVersion string) version.Version {
+func getVersionFromUser(customVersion string, prefix string, suffix string) version.Version {
 	var v version.Version
+	v.Suffix = suffix
+	v.Prefix = prefix
 	v.Parse(customVersion)
 	return v
 }
 
 func getVersionFromGit(prefix string, suffix string) version.Version {
 	var v version.Version
+	v.UseGit = true
 	v.Suffix = suffix
 	v.Prefix = prefix
 	v = *v.GetLatest()
