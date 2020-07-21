@@ -1,6 +1,7 @@
 package git
 
 import (
+	"fmt"
 	"log"
 	"strconv"
 	"strings"
@@ -64,14 +65,16 @@ func DescribeLong() string {
 }
 
 func GetLatestTag(prefix string, suffix string) (*string, error) {
-	cmd := "git tag"
+	regex := `[0-9]*\.[0-9]*\.[0-9]*`
 	if prefix != "" {
-		cmd += "| grep -i -e " + prefix
+		regex = "^" + prefix + regex
 	}
 	if suffix != "" {
-		cmd += "| grep -i -e " + suffix
+		regex += suffix
 	}
-	cmd += "| sort -rn | head -1"
+	regex += "$"
+	cmd := fmt.Sprintf("git tag | grep -w -e %q | sort -rn | head -1", regex)
+
 	out, err := terminal.Shell(cmd)
 	return &out, err
 }
