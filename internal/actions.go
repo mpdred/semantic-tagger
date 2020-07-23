@@ -29,6 +29,7 @@ func getVersionFromUser(customVersion string, prefix string, suffix string) vers
 }
 
 func getVersionFromGit(prefix string, suffix string) version.Version {
+	git.Fetch()
 	var v version.Version
 	v.UseGit = true
 	v.Suffix = suffix
