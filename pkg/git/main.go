@@ -95,7 +95,7 @@ func GetLastCommitNames(count int) (*string, error) {
 }
 
 func Fetch() {
-	out, err := terminal.Shell("git fetch origin")
+	out, err := terminal.Shell("git fetch origin --tags")
 	if err != nil {
 		log.Fatal(err)
 	}
