@@ -7,10 +7,14 @@ import (
 	"strings"
 )
 
-var debug = os.Getenv("DEBUG")
+var debugEnvVar = os.Getenv("DEBUG")
+
+func IsDebug() bool {
+	return strings.ToLower(debugEnvVar) == "true"
+}
 
 func Debug(v ...interface{}) {
-	if strings.ToLower(debug) == "true" {
+	if IsDebug() {
 		log.Println(v...)
 	}
 }
