@@ -73,7 +73,7 @@ func GetLatestTag(prefix string, suffix string) (*string, error) {
 		regex += suffix
 	}
 	regex += "$"
-	cmd := fmt.Sprintf("git tag | grep -w -e %q | sort -rn | head -1", regex)
+	cmd := fmt.Sprintf("git tag | grep -e %q | sort --reverse --version-sort | head -1", regex)
 
 	out, err := terminal.Shell(cmd)
 	return &out, err
@@ -95,7 +95,7 @@ func GetLastCommitNames(count int) (*string, error) {
 }
 
 func Fetch() {
-	cmd := "git fetch origin --tags --prune --prune-tags"
+	cmd := "git fetch origin --tags"
 	if output.IsDebug() {
 		cmd += " --verbose"
 	}
