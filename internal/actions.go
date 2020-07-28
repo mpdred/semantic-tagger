@@ -2,7 +2,6 @@ package internal
 
 import (
 	"log"
-	"strings"
 
 	"semtag/pkg/git"
 	"semtag/pkg/output"
@@ -55,14 +54,6 @@ func TagFile(ver version.Version, filePath string, versionPattern string, push b
 		Path:          filePath,
 		VersionFormat: versionPattern,
 		Version:       ver.String(),
-	}
-	out, err := git.GetLastCommitNames(-1)
-	if err != nil {
-		log.Fatal(err)
-	}
-	if strings.Contains(*out, commitMsgVerBump) {
-		output.Info("skip version increment: already incremented")
-		return
 	}
 	newContents := f.ReplaceSubstring()
 
