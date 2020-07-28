@@ -1,8 +1,6 @@
 package internal
 
 import (
-	"log"
-
 	"semtag/pkg/git"
 	"semtag/pkg/output"
 	"semtag/pkg/version"
@@ -60,12 +58,8 @@ func TagFile(ver version.Version, filePath string, versionPattern string, push b
 	output.Debug("tag file:", f, "\n", *newContents)
 	f.Write(newContents)
 	git.Add(filePath)
-	msg, err := git.GetLastCommitNames(-1)
-	if err != nil {
-		log.Fatal(err)
-	}
 	if push {
-		git.Commit(commitMsgVerBump + *msg)
+		git.Commit(commitMsgVerBump + ver.String())
 		git.Push("")
 	}
 }
