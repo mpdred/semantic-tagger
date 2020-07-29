@@ -3,7 +3,7 @@ package git
 import (
 	"fmt"
 	"log"
-	"strconv"
+	"regexp"
 	"strings"
 
 	"semtag/pkg/output"
@@ -79,18 +79,27 @@ func GetLatestTag(prefix string, suffix string) (*string, error) {
 	return &out, err
 }
 
-func GetBuildNumber() (*string, error) {
-	out, err := terminal.Shell("git rev-list --count --first-parent HEAD")
+func IsAlreadyTagged(ver string) bool {
+	tags, err := GetTagsForCurrentCommit()
+	if err != nil {
+		output.Debug(err)
+		return false
+	}
+	re := regexp.MustCompile("^" + ver + "$")
+	result := re.FindAllString(*tags, -1)
+	if len(result) > 0 {
+		return true
+	}
+	return false
+}
+
+func GetTagsForCurrentCommit() (*string, error) {
+	out, err := terminal.Shell("git tag --points-at HEAD")
 	return &out, err
 }
 
 func GetLastCommits(count int) (*string, error) {
 	out, err := terminal.Shellf("git log %d", count)
-	return &out, err
-}
-
-func GetLastCommitNames(count int) (*string, error) {
-	out, err := terminal.Shell("git log --pretty=format:%s " + strconv.Itoa(count))
 	return &out, err
 }
 

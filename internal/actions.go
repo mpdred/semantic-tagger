@@ -1,6 +1,8 @@
 package internal
 
 import (
+	"log"
+
 	"semtag/pkg/git"
 	"semtag/pkg/output"
 	"semtag/pkg/version"
@@ -36,6 +38,9 @@ func getVersionFromGit(prefix string, suffix string) version.Version {
 }
 
 func TagGit(ver version.Version, push bool) {
+	if git.IsAlreadyTagged(ver.String()) {
+		log.Fatal("The current commit has already been tagged with ", ver.String())
+	}
 	tag := &git.TagObj{
 		Name: ver.String(),
 	}
