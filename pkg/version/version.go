@@ -115,11 +115,11 @@ func (v *Version) IncrementAuto(scope string) {
 	}
 	changeType := ChangeType(PATCH)
 	if strings.ToLower(scope) == "major" ||
-		(strings.ToLower(scope) == "" && strings.Contains(*out, "BREAKING CHANGE")) {
+		(strings.ToLower(scope) == "auto" && strings.Contains(*out, "BREAKING CHANGE")) {
 		changeType = ChangeType(MAJOR)
 	} else {
 		if strings.ToLower(scope) == "minor" ||
-			(strings.ToLower(scope) == "" && (strings.Contains(*out, "feat:") || strings.Contains(*out, "feat("))) {
+			(strings.ToLower(scope) == "auto" && (strings.Contains(*out, "feat:") || strings.Contains(*out, "feat("))) {
 			changeType = ChangeType(MINOR)
 		}
 	}
