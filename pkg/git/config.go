@@ -27,7 +27,7 @@ func configureUserName() {
 
 	_, err = terminal.Shellf(`git config --global user.name "%s"`, gitUser)
 	if err != nil {
-		output.Debug(err)
+		log.Fatal(err)
 	}
 }
 
@@ -44,7 +44,7 @@ func configureUserEmail() {
 	}
 	_, err = terminal.Shellf(`git config --global user.email "%s"`, gitEmail)
 	if err != nil {
-		output.Debug(err)
+		log.Fatal(err)
 	}
 }
 
