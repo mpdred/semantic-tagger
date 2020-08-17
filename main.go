@@ -20,7 +20,10 @@ func main() {
 	args := internal.CliArgs{}
 	args.ParseFlags()
 
-	v := version.Version{}
+	v := version.Version{
+		Prefix: args.Prefix,
+		Suffix: args.Suffix,
+	}
 	if args.CustomVersion == internal.EmptyStringFlag {
 		v.GetLatestFromGit()
 	} else {

@@ -14,6 +14,11 @@ func TryConfigureIdentity() {
 }
 
 func configureUserName() {
+	_, err := terminal.Shell("git config --list | grep 'user.name'")
+	if err == nil {
+		return
+	}
+
 	gitUser, err := terminal.GetEnv("CI_GIT_USERNAME")
 	if err != nil {
 		output.Debug(err)
@@ -27,6 +32,11 @@ func configureUserName() {
 }
 
 func configureUserEmail() {
+	_, err := terminal.Shell("git config --list | grep 'user.email'")
+	if err == nil {
+		return
+	}
+
 	gitEmail, err := terminal.GetEnv("CI_GIT_EMAIL")
 	if err != nil {
 		output.Debug(err)

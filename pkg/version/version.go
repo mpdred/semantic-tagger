@@ -14,11 +14,11 @@ import (
 )
 
 const (
-	defaultVersion     string = "0.1.0"
-	EmptyVersionNumber        = ""
+	defaultVersion string = "0.1.0"
 )
 
 var (
+	ErrParseVersion      = errors.New("unable to parse version")
 	ErrParseVersionMajor = errors.New("unable to parse version scope: major")
 	ErrParseVersionMinor = errors.New("unable to parse version scope: minor")
 	ErrParseVersionPatch = errors.New("unable to parse version scope: patch")
@@ -32,28 +32,17 @@ type Version struct {
 	Patch  int
 	Suffix string
 
-	UseGit bool
-	Hash   string
+	Hash string
 }
-
-// func (v *Version) GetVersion(args internal.CliArgs) *Version {
-// 	if args.CustomVersion == EmptyVersionNumber {
-// 		readFromGit(args.Prefix, args.Suffix)
-// 	} else {
-// 		useVersionProvidedByUser(args.CustomVersion, args.Prefix, args.Suffix)
-// 	}
-// 	output.Debug(v.String())
-// 	return v
-// }
 
 func (v *Version) UseVersionProvidedByUser(prefix string, customVersion string, suffix string) {
 	v.Suffix = suffix
 	v.Prefix = prefix
-	v.Parse(customVersion)
+	raw := v.Raw(customVersion)
+	v.Load(raw)
 }
 
-func (v *Version) GetLatestFromGit() *Version {
-	v.UseGit = true
+func (v *Version) GetLatestFromGit() {
 	git.Fetch()
 	var latest string
 
@@ -68,15 +57,42 @@ func (v *Version) GetLatestFromGit() *Version {
 		latest = defaultVersion
 	}
 
-	v.Parse(latest)
-	return v
+	raw := v.Raw(latest)
+	v.Load(raw)
+	v.Hash = git.GetHashShort()
 }
 
-func (v *Version) Parse(version string) {
-	var err error
-	v.Validate(version)
+func (v *Version) Validate(version string) {
+	re := regexp.MustCompile("^[0-9]+.[0-9]+.[0-9]+$")
+	allStrings := re.FindAllString(version, -1)
+	if len(allStrings) == 1 {
+		return
+	}
+	log.Fatal(pkg.NewErrorDetails(ErrParseVersion, version))
+}
 
-	vSplit := strings.Split(version, ".")
+func (v *Version) String() string {
+	s := fmt.Sprintf("%d.%d.%d", v.Major, v.Minor, v.Patch)
+	s = v.appendPrefix([]string{s})[0]
+	s = v.appendSuffix([]string{s})[0]
+	return s
+}
+
+func (v *Version) Raw(version string) string {
+	if v.Prefix != "" {
+		version = strings.Replace(version, v.Prefix, "", 1)
+	}
+	if v.Suffix != "" {
+		version = strings.Replace(version, v.Suffix, "", 1)
+	}
+	v.Validate(version)
+	return version
+}
+
+func (v *Version) Load(raw string) {
+	vSplit := strings.Split(raw, ".")
+
+	var err error
 	v.Major, err = strconv.Atoi(vSplit[0])
 	if err != nil {
 		log.Fatal(pkg.NewErrorDetails(ErrParseVersionMajor, err))
@@ -89,31 +105,11 @@ func (v *Version) Parse(version string) {
 	if err != nil {
 		log.Fatal(pkg.NewErrorDetails(ErrParseVersionPatch, err))
 	}
-
-	if v.UseGit {
-		v.Hash = git.GetHashShort()
-	}
-}
-
-func (v *Version) Validate(version string) bool {
-	re := regexp.MustCompile("[0-9]+.[0-9]+.[0-9]+")
-	allStrings := re.FindAllString(version, -1)
-	if len(allStrings) == 1 {
-		return true
-	}
-	return false
-}
-
-func (v *Version) String() string {
-	s := fmt.Sprintf("%d.%d.%d", v.Major, v.Minor, v.Patch)
-	s = v.appendPrefix([]string{s})[0]
-	s = v.appendSuffix([]string{s})[0]
-	return s
 }
 
 func (v *Version) AsList() []string {
 	var list []string
-	if v.UseGit {
+	if v.Hash != "" {
 		list = append(list, fmt.Sprintf("%d.%d.%d-%s", v.Major, v.Minor, v.Patch, v.Hash))
 	}
 	list = append(list, fmt.Sprintf("%d.%d.%d", v.Major, v.Minor, v.Patch))
