@@ -9,7 +9,8 @@ import (
 )
 
 const (
-	EmptyStringFlag = ""
+	EmptyStringFlag     = ""
+	DefaultRelevantPath = "./"
 )
 
 var (
@@ -35,7 +36,7 @@ type CliArgs struct {
 type relevantPaths []string
 
 func (i *relevantPaths) String() string {
-	return "my string representation"
+	return DefaultRelevantPath
 }
 
 func (i *relevantPaths) Set(value string) error {
@@ -97,11 +98,6 @@ func (args *CliArgs) ParseFlags() {
 `)
 	flag.Parse()
 
-	if len(args.RelevantPaths) == 0 {
-		args.RelevantPaths = relevantPaths{
-			".",
-		}
-	}
 	if (args.FilePath == EmptyStringFlag) != (args.FileVersionPattern == EmptyStringFlag) {
 		log.Fatalln(ErrOnlyOneDeployFileFlagsSet)
 	}

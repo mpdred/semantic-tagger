@@ -38,8 +38,10 @@ func main() {
 		fmt.Print(v.String())
 	}
 
-	git.TryConfigureIdentity()
-	git.TrySetGitCredentialsBasicAuth()
+	if args.Push {
+		git.TryConfigureIdentity()
+		git.TrySetGitCredentialsBasicAuth()
+	}
 
 	if args.ExecuteCommand != "" {
 		for _, val := range v.AsList() {
