@@ -20,7 +20,12 @@ func main() {
 	args := internal.CliArgs{}
 	args.ParseFlags()
 
-	v := internal.GetVersion(args)
+	v := version.Version{}
+	if args.CustomVersion == internal.EmptyStringFlag {
+		v.GetLatestFromGit()
+	} else {
+		v.UseVersionProvidedByUser(args.Prefix, args.CustomVersion, args.Suffix)
+	}
 
 	shouldIncrementVersion := args.VersionScope.String() != version.EmptyScope
 	if !shouldIncrementVersion {
@@ -36,10 +41,9 @@ func main() {
 	if args.ExecuteCommand != "" {
 		for _, val := range v.AsList() {
 			_, err := terminal.Shellf(args.ExecuteCommand, val)
-			if err == terminal.ErrShellCommand {
+			if err != nil {
 				log.Fatal(err)
 			}
-			log.Panic(err)
 		}
 
 	}

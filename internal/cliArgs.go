@@ -80,7 +80,7 @@ func (args *CliArgs) ParseFlags() {
 		)
 `)
 
-	flag.Var(&args.RelevantPaths, "path",`if set, create a git tag only if changes are detected in the provided path(s)
+	flag.Var(&args.RelevantPaths, "path", `if set, create a git tag only if changes are detected in the provided path(s)
 	e.g.:
 	input: ./semtag -path="src" -path="lib/" -path="Dockerfile"
 `)

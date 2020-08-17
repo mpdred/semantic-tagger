@@ -10,35 +10,6 @@ import (
 	"semtag/pkg/version"
 )
 
-func GetVersion(args CliArgs) version.Version {
-	var v version.Version
-	if args.CustomVersion != "" {
-		v = getVersionFromUser(args.CustomVersion, args.Prefix, args.Suffix)
-	} else {
-		v = getVersionFromGit(args.Prefix, args.Suffix)
-	}
-	output.Debug(v.String())
-	return v
-}
-
-func getVersionFromUser(customVersion string, prefix string, suffix string) version.Version {
-	var v version.Version
-	v.Suffix = suffix
-	v.Prefix = prefix
-	v.Parse(customVersion)
-	return v
-}
-
-func getVersionFromGit(prefix string, suffix string) version.Version {
-	git.Fetch()
-	var v version.Version
-	v.UseGit = true
-	v.Suffix = suffix
-	v.Prefix = prefix
-	v = *v.GetLatest()
-	return v
-}
-
 func TagGit(ver version.Version, push bool) {
 	if git.IsAlreadyTagged(ver.String()) {
 		log.Fatal("The current commit has already been tagged with ", ver.String())
@@ -89,10 +60,7 @@ func GetChangedFiles() string {
 	commit := git.GetHashShort()
 	out, err := terminal.Shellf("git diff %[1]s~1..%[1]s --name-only", commit)
 	if err != nil {
-		if err == terminal.ErrShellCommand {
-			log.Fatalln(err)
-		}
-		log.Panic(err)
+		log.Fatalln(err)
 	}
 	return out
 }
