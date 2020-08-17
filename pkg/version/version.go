@@ -8,13 +8,17 @@ import (
 	"strconv"
 	"strings"
 
+	"semtag/pkg"
 	"semtag/pkg/git"
 	"semtag/pkg/output"
 )
 
-const defaultVersion string = "0.1.0"
+const (
+	defaultVersion string = "0.1.0"
+)
 
 var (
+	ErrParseVersion      = errors.New("unable to parse version")
 	ErrParseVersionMajor = errors.New("unable to parse version scope: major")
 	ErrParseVersionMinor = errors.New("unable to parse version scope: minor")
 	ErrParseVersionPatch = errors.New("unable to parse version scope: patch")
@@ -28,11 +32,18 @@ type Version struct {
 	Patch  int
 	Suffix string
 
-	UseGit bool
-	Hash   string
+	Hash string
 }
 
-func (v *Version) GetLatest() *Version {
+func (v *Version) UseVersionProvidedByUser(prefix string, customVersion string, suffix string) {
+	v.Suffix = suffix
+	v.Prefix = prefix
+	raw := v.Raw(customVersion)
+	v.Load(raw)
+}
+
+func (v *Version) GetLatestFromGit() {
+	git.Fetch()
 	var latest string
 
 	tag, err := git.GetLatestTag(v.Prefix, v.Suffix)
@@ -46,32 +57,18 @@ func (v *Version) GetLatest() *Version {
 		latest = defaultVersion
 	}
 
-	v.Parse(latest)
-	return v
+	raw := v.Raw(latest)
+	v.Load(raw)
+	v.Hash = git.GetHashShort()
 }
 
-func (v *Version) Parse(version string) {
-	var err error
-	re := regexp.MustCompile("[0-9]+.[0-9]+.[0-9]+")
-	version = re.FindAllString(version, -1)[0]
-
-	vSplit := strings.Split(version, ".")
-	v.Major, err = strconv.Atoi(vSplit[0])
-	if err != nil {
-		log.Fatal(ErrParseVersionMajor, err)
+func (v *Version) Validate(version string) {
+	re := regexp.MustCompile("^[0-9]+.[0-9]+.[0-9]+$")
+	allStrings := re.FindAllString(version, -1)
+	if len(allStrings) == 1 {
+		return
 	}
-	v.Minor, err = strconv.Atoi(vSplit[1])
-	if err != nil {
-		log.Fatal(ErrParseVersionMinor, err)
-	}
-	v.Patch, err = strconv.Atoi(vSplit[2])
-	if err != nil {
-		log.Fatal(ErrParseVersionPatch, err)
-	}
-
-	if v.UseGit {
-		v.Hash = git.GetHashShort()
-	}
+	log.Fatal(pkg.NewErrorDetails(ErrParseVersion, version))
 }
 
 func (v *Version) String() string {
@@ -81,9 +78,38 @@ func (v *Version) String() string {
 	return s
 }
 
+func (v *Version) Raw(version string) string {
+	if v.Prefix != "" {
+		version = strings.Replace(version, v.Prefix, "", 1)
+	}
+	if v.Suffix != "" {
+		version = strings.Replace(version, v.Suffix, "", 1)
+	}
+	v.Validate(version)
+	return version
+}
+
+func (v *Version) Load(raw string) {
+	vSplit := strings.Split(raw, ".")
+
+	var err error
+	v.Major, err = strconv.Atoi(vSplit[0])
+	if err != nil {
+		log.Fatal(pkg.NewErrorDetails(ErrParseVersionMajor, err))
+	}
+	v.Minor, err = strconv.Atoi(vSplit[1])
+	if err != nil {
+		log.Fatal(pkg.NewErrorDetails(ErrParseVersionMinor, err))
+	}
+	v.Patch, err = strconv.Atoi(vSplit[2])
+	if err != nil {
+		log.Fatal(pkg.NewErrorDetails(ErrParseVersionPatch, err))
+	}
+}
+
 func (v *Version) AsList() []string {
 	var list []string
-	if v.UseGit {
+	if v.Hash != "" {
 		list = append(list, fmt.Sprintf("%d.%d.%d-%s", v.Major, v.Minor, v.Patch, v.Hash))
 	}
 	list = append(list, fmt.Sprintf("%d.%d.%d", v.Major, v.Minor, v.Patch))
@@ -120,7 +146,7 @@ func (v *Version) appendPrefix(list []string) []string {
 
 func (v *Version) IncrementAuto(scopeAsString string) {
 	out, err := git.GetLastCommits(-1)
-	if err == git.ErrGetLastGitCommits {
+	if err != nil {
 		log.Panic(err)
 	}
 	s := Scope{PATCH}
