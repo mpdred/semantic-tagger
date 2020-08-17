@@ -2,9 +2,11 @@ package internal
 
 import (
 	"log"
+	"strings"
 
 	"semtag/pkg/git"
 	"semtag/pkg/output"
+	"semtag/pkg/terminal"
 	"semtag/pkg/version"
 )
 
@@ -67,4 +69,30 @@ func TagFile(ver version.Version, filePath string, versionPattern string, push b
 		git.Commit(commitMsgVerBump + ver.String())
 		git.Push("")
 	}
+}
+
+func HasRelevantChanges(relevantPaths []string) bool {
+	output.Debug("check for code changes")
+	changes := GetChangedFiles()
+	for _, appPath := range relevantPaths {
+		if strings.Contains(changes, appPath) {
+			output.Debug("found relevant changes in the current commit")
+			return true
+		}
+	}
+	output.Info("no relevant changes found in the current commit")
+	return false
+}
+
+func GetChangedFiles() string {
+	output.Debug("get changed files for this commit")
+	commit := git.GetHashShort()
+	out, err := terminal.Shellf("git diff %[1]s~1..%[1]s --name-only", commit)
+	if err != nil {
+		if err == terminal.ErrShellCommand {
+			log.Fatalln(err)
+		}
+		log.Panic(err)
+	}
+	return out
 }

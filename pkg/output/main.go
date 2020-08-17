@@ -18,7 +18,7 @@ func Debug(v ...interface{}) {
 		log.Println(v...)
 	}
 }
-func DebugF(format string, v ...interface{}) {
+func Debugf(format string, v ...interface{}) {
 	Debug(fmt.Sprintf(format, v...))
 }
 
@@ -26,6 +26,6 @@ func Info(v ...interface{}) {
 	log.Println(v...)
 }
 
-func InfoF(format string, v ...interface{}) {
+func Infof(format string, v ...interface{}) {
 	Info(fmt.Sprintf(format, v...))
 }
