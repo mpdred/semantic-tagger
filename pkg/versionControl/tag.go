@@ -1,8 +1,6 @@
-package git
+package versionControl
 
-import (
-	"time"
-)
+import "time"
 
 type TagObj struct {
 	Name    string

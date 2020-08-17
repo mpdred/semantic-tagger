@@ -1,4 +1,4 @@
-package git
+package versionControl
 
 import (
 	"errors"
@@ -7,13 +7,31 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/go-git/go-git/v5"
+	"github.com/go-git/go-git/v5/plumbing/object"
+
 	"semtag/pkg/output"
 	"semtag/pkg/terminal"
 )
 
-const EmptyGitCommit string = ""
+const (
+	EmptyGitCommit string = ""
+)
 
-var ErrGetLastGitCommits = errors.New("failed to retrieve commits")
+var (
+	r = Open()
+
+	ErrNotAGitRepository = errors.New("unable to find the .git folder")
+	ErrGetLastGitCommits = errors.New("failed to retrieve commits")
+)
+
+func Open() *git.Repository {
+	r, err := git.PlainOpen(git.GitDirName)
+	if err != nil {
+		log.Panic(ErrNotAGitRepository)
+	}
+	return r
+}
 
 func Commit(msg string) {
 	out, err := terminal.Shellf("git commit -m %q ", msg)
@@ -51,19 +69,10 @@ func Tag(tag string, message string) {
 	output.Debug(out)
 }
 
-func GetHashShort() string {
-	out, err := terminal.Shell("git rev-parse --short HEAD")
-	if err != nil {
-		log.Fatal(err)
-	}
-	out = strings.Replace(out, "\n", "", -1)
-	return out
-}
-
 func DescribeLong() string {
 	out, err := terminal.Shell("git describe --tags --long --dirty --always")
 	if err != nil {
-		return GetHashShort()
+		return GetCommitObject().Hash.String()
 	}
 	out = strings.Replace(out, "\n", "", -1)
 	return out
@@ -106,6 +115,18 @@ func GetTagsForCurrentCommit() (*string, error) {
 	return &out, err
 }
 
+func GetCommitObject() *object.Commit {
+	ref, err := r.Head()
+	if err != nil {
+		log.Panic(err)
+	}
+	out, err := r.CommitObject(ref.Hash())
+	if err != nil {
+		log.Panic(err)
+	}
+	return out
+}
+
 func GetLastCommits(count int) (string, error) {
 	out, err := terminal.Shellf("git log %d", count)
 	if err != nil {
@@ -115,10 +136,15 @@ func GetLastCommits(count int) (string, error) {
 }
 
 func Fetch() {
-	cmd := "git fetch origin --tags"
-	out, err := terminal.Shell(cmd)
+	output.Debug("git fetch")
+	err := r.Fetch(&git.FetchOptions{
+		Progress: nil,
+	})
 	if err != nil {
-		log.Fatal(err)
+		if strings.Contains(err.Error(), "up-to-date") {
+			output.Debug(err)
+			return
+		}
+		log.Panic(err)
 	}
-	output.Debug(out)
 }

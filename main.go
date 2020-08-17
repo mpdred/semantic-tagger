@@ -6,7 +6,7 @@ import (
 	"log"
 
 	"semtag/internal"
-	"semtag/pkg/git"
+	"semtag/pkg/versionControl"
 	"semtag/pkg/output"
 	"semtag/pkg/terminal"
 	"semtag/pkg/version"
@@ -39,8 +39,8 @@ func main() {
 	}
 
 	if args.Push {
-		git.TryConfigureIdentity()
-		git.TrySetGitCredentialsBasicAuth()
+		versionControl.TryConfigureIdentity()
+		versionControl.TrySetGitCredentialsBasicAuth()
 	}
 
 	if args.ExecuteCommand != "" {
