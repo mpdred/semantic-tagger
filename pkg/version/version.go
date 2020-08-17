@@ -1,6 +1,7 @@
 package version
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"regexp"
@@ -9,6 +10,15 @@ import (
 
 	"semtag/pkg/git"
 	"semtag/pkg/output"
+)
+
+const defaultVersion string = "0.1.0"
+
+var (
+	ErrParseVersionMajor = errors.New("unable to parse version scope: major")
+	ErrParseVersionMinor = errors.New("unable to parse version scope: minor")
+	ErrParseVersionPatch = errors.New("unable to parse version scope: patch")
+	ErrIncrementVersion  = errors.New("bad parameter for increment")
 )
 
 type Version struct {
@@ -33,7 +43,7 @@ func (v *Version) GetLatest() *Version {
 	}
 
 	if latest == "" {
-		latest = "0.1.0"
+		latest = defaultVersion
 	}
 
 	v.Parse(latest)
@@ -48,15 +58,15 @@ func (v *Version) Parse(version string) {
 	vSplit := strings.Split(version, ".")
 	v.Major, err = strconv.Atoi(vSplit[0])
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal(ErrParseVersionMajor, err)
 	}
 	v.Minor, err = strconv.Atoi(vSplit[1])
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal(ErrParseVersionMinor, err)
 	}
 	v.Patch, err = strconv.Atoi(vSplit[2])
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal(ErrParseVersionPatch, err)
 	}
 
 	if v.UseGit {
@@ -108,27 +118,27 @@ func (v *Version) appendPrefix(list []string) []string {
 	return list
 }
 
-func (v *Version) IncrementAuto(scope string) {
+func (v *Version) IncrementAuto(scopeAsString string) {
 	out, err := git.GetLastCommits(-1)
-	if err != nil {
-		log.Fatal(err)
+	if err == git.ErrGetLastGitCommits {
+		log.Panic(err)
 	}
-	changeType := ChangeType(PATCH)
-	if strings.ToLower(scope) == "major" ||
-		(strings.ToLower(scope) == "auto" && strings.Contains(*out, "BREAKING CHANGE")) {
-		changeType = ChangeType(MAJOR)
+	s := Scope{PATCH}
+	if strings.ToLower(scopeAsString) == "major" ||
+		(strings.ToLower(scopeAsString) == "auto" && strings.Contains(out, "BREAKING CHANGE")) {
+		s.Id = MAJOR
 	} else {
-		if strings.ToLower(scope) == "minor" ||
-			(strings.ToLower(scope) == "auto" && (strings.Contains(*out, "feat:") || strings.Contains(*out, "feat("))) {
-			changeType = ChangeType(MINOR)
+		if strings.ToLower(scopeAsString) == "minor" ||
+			(strings.ToLower(scopeAsString) == "auto" && (strings.Contains(out, "feat:") || strings.Contains(out, "feat("))) {
+			s.Id = MINOR
 		}
 	}
-	output.Debug("increment version number:", changeType.String())
-	v.Increment(changeType)
+	output.Debug("increment version number:", s.String())
+	v.Increment(s)
 }
 
-func (v *Version) Increment(cType ChangeType) {
-	switch cType {
+func (v *Version) Increment(s Scope) {
+	switch s.Id {
 	case MAJOR:
 		v.Major += 1
 		v.Minor = 0
@@ -139,6 +149,6 @@ func (v *Version) Increment(cType ChangeType) {
 	case PATCH:
 		v.Patch += 1
 	default:
-		log.Fatal("bad parameter for increment:", string(cType))
+		log.Panic(ErrIncrementVersion, s)
 	}
 }

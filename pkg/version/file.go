@@ -1,12 +1,17 @@
 package version
 
 import (
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"log"
 	"regexp"
 	"strings"
+
+	"semtag/pkg"
 )
+
+var ErrNoMatchFoundVersionFormat = errors.New("no match found for version format")
 
 type File struct {
 	Path          string
@@ -36,7 +41,7 @@ func (f *File) ReplaceSubstring() *string {
 	dat := string(*f.Read())
 	match := re.FindStringSubmatch(dat)
 	if len(match) != 1 {
-		log.Fatalf("no match found for %q in %q", f.VersionFormat, f.Path)
+		log.Fatal(pkg.NewErrorDetails(ErrNoMatchFoundVersionFormat, "file: "+f.Path, "; version format: "+f.VersionFormat))
 	}
 
 	newVersionLine := fmt.Sprintf(f.VersionFormat, f.Version)

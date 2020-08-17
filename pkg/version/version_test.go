@@ -7,15 +7,15 @@ import (
 
 func Test_Increment(t *testing.T) {
 	tables := []struct {
-		ver    string
-		chType ChangeType
-		want   string
+		ver   string
+		scope Scope
+		want  string
 	}{
-		{"1.2.3", MAJOR, "2.0.0"},
-		{"1.2.3", MINOR, "1.3.0"},
-		{"1.2.3", PATCH, "1.2.4"},
+		{"1.2.3", Scope{MAJOR}, "2.0.0"},
+		{"1.2.3", Scope{MINOR}, "1.3.0"},
+		{"1.2.3", Scope{PATCH}, "1.2.4"},
 	}
-	assertCorrectMessage := func(t *testing.T, got, want string, changeType ChangeType) {
+	assertCorrectMessage := func(t *testing.T, got, want string, changeType Scope) {
 		t.Helper()
 		if got != want {
 			t.Errorf("got %q want %q %s", got, want, changeType.String())
@@ -25,9 +25,9 @@ func Test_Increment(t *testing.T) {
 		t.Run("Test Increment", func(t *testing.T) {
 			ver := Version{}
 			ver.Parse(tb.ver)
-			ver.Increment(tb.chType)
+			ver.Increment(tb.scope)
 			got := ver.String()
-			assertCorrectMessage(t, got, tb.want, tb.chType)
+			assertCorrectMessage(t, got, tb.want, tb.scope)
 		})
 	}
 }

@@ -1,6 +1,7 @@
 package git
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"regexp"
@@ -9,6 +10,10 @@ import (
 	"semtag/pkg/output"
 	"semtag/pkg/terminal"
 )
+
+const EmptyGitCommit string = ""
+
+var ErrGetLastGitCommits = errors.New("failed to retrieve commits")
 
 func Commit(msg string) {
 	out, err := terminal.Shellf("git commit -m %q ", msg)
@@ -68,12 +73,15 @@ func GetLatestTag(prefix string, suffix string) (*string, error) {
 	regex := `[0-9]*\.[0-9]*\.[0-9]*`
 	if prefix != "" {
 		regex = "^" + prefix + regex
+	} else {
+		regex = "^" + regex
 	}
 	if suffix != "" {
-		regex += suffix
+		regex += suffix + "$"
+	} else {
+		regex += "$"
 	}
-	regex += "$"
-	cmd := fmt.Sprintf("git tag | grep -e %q | sort -rn | head -1", regex)
+	cmd := fmt.Sprintf("git tag --sort=v:refname | grep -e %q | tail -1", regex)
 
 	out, err := terminal.Shell(cmd)
 	return &out, err
@@ -98,9 +106,12 @@ func GetTagsForCurrentCommit() (*string, error) {
 	return &out, err
 }
 
-func GetLastCommits(count int) (*string, error) {
+func GetLastCommits(count int) (string, error) {
 	out, err := terminal.Shellf("git log %d", count)
-	return &out, err
+	if err != nil {
+		return EmptyGitCommit, ErrGetLastGitCommits
+	}
+	return out, nil
 }
 
 func Fetch() {

@@ -9,6 +9,7 @@ import (
 	"semtag/pkg/git"
 	"semtag/pkg/output"
 	"semtag/pkg/terminal"
+	"semtag/pkg/version"
 )
 
 func parseFlags() internal.CliArgs {
@@ -25,7 +26,8 @@ func parseFlags() internal.CliArgs {
 `)
 	flag.StringVar(&args.CustomVersion, "version", "", `if set, use the user-provided version`)
 
-	flag.StringVar(&args.VersionScope, "increment", "", "if set, increment the version scope: auto | major | minor | patch")
+	var versionScope string
+	flag.StringVar(&versionScope, "increment", "", "if set, increment the version scope: auto | major | minor | patch")
 	flag.BoolVar(&args.Push, "push", false, "if set, push the created/updated object(s): push the git tag; add, commit and push the updated file.")
 
 	flag.BoolVar(&args.ShouldTagGit, "git-tag", false, "if set, create an annotated tag")
@@ -60,6 +62,8 @@ func parseFlags() internal.CliArgs {
 `)
 	flag.Parse()
 
+	args.VersionScope.Parse(versionScope)
+
 	return args
 }
 
@@ -68,28 +72,27 @@ func main() {
 
 	v := internal.GetVersion(args)
 
-	shouldIncrementVersion := args.VersionScope != ""
+	shouldIncrementVersion := args.VersionScope.String() != version.EmptyScope
 	if !shouldIncrementVersion {
 		fmt.Print(v.String())
 	} else {
-		v.IncrementAuto(args.VersionScope)
+		v.IncrementAuto(args.VersionScope.String())
 		fmt.Print(v.String())
 	}
+
+	git.TrySetGitCredentialsBasicAuth()
 
 	if args.ExecuteCommand != "" {
 		for _, val := range v.AsList() {
 			_, err := terminal.Shellf(args.ExecuteCommand, val)
-			if err != nil {
+			if err == terminal.ErrShellCommand {
 				log.Panic(err)
 			}
 		}
 
 	}
 
-	git.TrySetGitCredentialsBasicAuth()
-
 	notPushModeMessage := "push to Git skipped: use the `-push` flag to push changes"
-
 	if args.ShouldTagGit {
 		internal.TagGit(v, args.Push)
 		if !args.Push {
