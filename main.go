@@ -40,7 +40,6 @@ func main() {
 	}
 
 	if args.Push {
-		versionControl.TryConfigureIdentity()
 		versionControl.TrySetGitCredentialsBasicAuth()
 	}
 
