@@ -26,6 +26,7 @@ changelog:
 
 upload:
 	set -e
-	cp -v /tmp/semtag /tmp/semtag-$$(git describe --tags `git rev-list --tags --max-count=1` | cut -d '.' -f1)
+	mkdir out || true
+	cp -v /tmp/semtag ./out/semtag-$$(git describe --tags `git rev-list --tags --max-count=1` | cut -d '.' -f1)
 	sudo apt-get install -y awscli > /dev/null
-	aws s3 sync /tmp/ s3://mpdred-public
+	aws s3 sync ./out/ s3://mpdred-public
