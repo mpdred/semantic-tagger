@@ -15,7 +15,7 @@ test:
 tag:
 	set -e
 	git config --list | grep "user.email" || git config --global user.email "ci@foo.com" && git config --global user.name "ci"
-	.//tmp/semtag -increment=auto -git-tag -prefix="v" -push -path=main.go -path=go.mod -path=internal -path=pkg
+	/tmp/semtag -increment=auto -git-tag -prefix="v" -push -path=main.go -path=go.mod -path=internal -path=pkg
 
 changelog:
 	set -e

@@ -2,7 +2,7 @@
 FROM golang AS src
 WORKDIR /app
 RUN apt update > /dev/null \
-  && apt install -y git make > /dev/null
+  && apt install -y make > /dev/null
 
 COPY . .
 
