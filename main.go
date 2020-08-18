@@ -6,10 +6,11 @@ import (
 	"log"
 
 	"semtag/internal"
-	"semtag/pkg/git"
+	"semtag/pkg/changelog"
 	"semtag/pkg/output"
 	"semtag/pkg/terminal"
 	"semtag/pkg/version"
+	"semtag/pkg/versionControl"
 )
 
 var (
@@ -39,8 +40,8 @@ func main() {
 	}
 
 	if args.Push {
-		git.TryConfigureIdentity()
-		git.TrySetGitCredentialsBasicAuth()
+		versionControl.TryConfigureIdentity()
+		versionControl.TrySetGitCredentialsBasicAuth()
 	}
 
 	if args.ExecuteCommand != "" {
@@ -55,7 +56,10 @@ func main() {
 
 	if args.ShouldTagGit {
 		if internal.HasRelevantChanges(args.RelevantPaths) {
-			internal.TagGit(v, args.Push)
+			tag := &versionControl.TagObj{
+				Name: v.String(),
+			}
+			internal.TagGit(tag, args.Push)
 			if !args.Push {
 				output.Debug(ErrNotPushMode)
 			}
@@ -68,5 +72,9 @@ func main() {
 		if !args.Push {
 			output.Debug(ErrNotPushMode)
 		}
+	}
+
+	if args.Changelog {
+		changelog.GenerateChangeLog(args.ChangelogRegex)
 	}
 }

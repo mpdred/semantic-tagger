@@ -14,5 +14,5 @@ coverage.html
 
 .idea/
 out/
-semtag
-*.tar
+
+CHANGELOG.md

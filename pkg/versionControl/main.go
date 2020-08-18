@@ -1,4 +1,4 @@
-package git
+package versionControl
 
 import (
 	"errors"
@@ -11,9 +11,14 @@ import (
 	"semtag/pkg/terminal"
 )
 
-const EmptyGitCommit string = ""
+const (
+	EmptyGitCommit string = ""
+)
 
-var ErrGetLastGitCommits = errors.New("failed to retrieve commits")
+var (
+	ErrNotAGitRepository = errors.New("unable to find the .git folder")
+	ErrGetLastGitCommits = errors.New("failed to retrieve commits")
+)
 
 func Commit(msg string) {
 	out, err := terminal.Shellf("git commit -m %q ", msg)
@@ -40,7 +45,7 @@ func Push(target string) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	output.Debug(out)
+	output.Info(out)
 }
 
 func Tag(tag string, message string) {
@@ -51,19 +56,10 @@ func Tag(tag string, message string) {
 	output.Debug(out)
 }
 
-func GetHashShort() string {
-	out, err := terminal.Shell("git rev-parse --short HEAD")
-	if err != nil {
-		log.Fatal(err)
-	}
-	out = strings.Replace(out, "\n", "", -1)
-	return out
-}
-
 func DescribeLong() string {
 	out, err := terminal.Shell("git describe --tags --long --dirty --always")
 	if err != nil {
-		return GetHashShort()
+		return GetHash()
 	}
 	out = strings.Replace(out, "\n", "", -1)
 	return out
@@ -106,6 +102,14 @@ func GetTagsForCurrentCommit() (*string, error) {
 	return &out, err
 }
 
+func GetHash() string {
+	out, err := terminal.Shell("git rev-parse HEAD")
+	if err != nil {
+		log.Panic(err)
+	}
+	return out
+}
+
 func GetLastCommits(count int) (string, error) {
 	out, err := terminal.Shellf("git log %d", count)
 	if err != nil {
@@ -115,10 +119,12 @@ func GetLastCommits(count int) (string, error) {
 }
 
 func Fetch() {
-	cmd := "git fetch origin --tags"
-	out, err := terminal.Shell(cmd)
-	if err != nil {
-		log.Fatal(err)
+	out, _ := terminal.GetEnv("SEMTAG_NOFETCH")
+	if out != "" {
+		return
 	}
-	output.Debug(out)
+	_, err := terminal.Shell("git fetch")
+	if err != nil {
+		log.Panic(err)
+	}
 }

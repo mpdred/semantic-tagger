@@ -9,8 +9,8 @@ import (
 	"strings"
 
 	"semtag/pkg"
-	"semtag/pkg/git"
 	"semtag/pkg/output"
+	"semtag/pkg/versionControl"
 )
 
 const (
@@ -32,7 +32,8 @@ type Version struct {
 	Patch  int
 	Suffix string
 
-	Hash string
+	Hash  string
+	Scope Scope
 }
 
 func (v *Version) UseVersionProvidedByUser(prefix string, customVersion string, suffix string) {
@@ -43,10 +44,10 @@ func (v *Version) UseVersionProvidedByUser(prefix string, customVersion string, 
 }
 
 func (v *Version) GetLatestFromGit() {
-	git.Fetch()
+	versionControl.Fetch()
 	var latest string
 
-	tag, err := git.GetLatestTag(v.Prefix, v.Suffix)
+	tag, err := versionControl.GetLatestTag(v.Prefix, v.Suffix)
 	if err != nil {
 		output.Debug(err)
 	} else {
@@ -59,7 +60,7 @@ func (v *Version) GetLatestFromGit() {
 
 	raw := v.Raw(latest)
 	v.Load(raw)
-	v.Hash = git.GetHashShort()
+	v.Hash = versionControl.GetHash()
 }
 
 func (v *Version) Validate(version string) {
@@ -145,7 +146,7 @@ func (v *Version) appendPrefix(list []string) []string {
 }
 
 func (v *Version) IncrementAuto(scopeAsString string) {
-	out, err := git.GetLastCommits(-1)
+	out, err := versionControl.GetLastCommits(-1)
 	if err != nil {
 		log.Panic(err)
 	}
@@ -160,6 +161,7 @@ func (v *Version) IncrementAuto(scopeAsString string) {
 		}
 	}
 	output.Debug("increment version number:", s.String())
+	v.Scope = s
 	v.Increment(s)
 }
 

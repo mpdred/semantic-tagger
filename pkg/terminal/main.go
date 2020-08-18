@@ -12,7 +12,7 @@ import (
 )
 
 const (
-	ShellName = "sh"
+	ShellName = "bash"
 
 	NoEnvVarValue             = ""
 	BadShellResponse   string = ""
@@ -33,6 +33,25 @@ func GetEnv(key string) (string, error) {
 }
 
 func Shell(cmd string) (string, error) {
+	out, err := execute(cmd)
+	if err != nil {
+		return string(out), err
+	}
+
+	outputFormatted := strings.Replace(string(out), "\n", "", -1)
+	return outputFormatted, nil
+}
+
+func ShellRaw(cmd string) (string, error) {
+	out, err := execute(cmd)
+	if err != nil {
+		return string(out), err
+	}
+
+	return string(out), nil
+}
+
+func execute(cmd string) ([]byte, error) {
 	c := exec.Command(ShellName, "-c", cmd)
 	c.Stderr = os.Stderr
 	out, err := c.Output()
@@ -40,15 +59,12 @@ func Shell(cmd string) (string, error) {
 
 	debugDetails := fmt.Sprintf("\n$ %s\n%s\n", c, outAsString)
 	output.Debug(debugDetails)
-
-	outputFormatted := strings.Replace(string(out), "\n", "", -1)
 	if err != nil {
-		return BadShellResponse, pkg.NewErrorDetails(
+		return []byte(BadShellResponse), pkg.NewErrorDetails(
 			ErrShellCommand,
 			debugDetails)
-
 	}
-	return outputFormatted, nil
+	return out, nil
 }
 
 func Shellf(format string, v ...interface{}) (string, error) {
