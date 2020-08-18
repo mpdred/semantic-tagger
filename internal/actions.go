@@ -10,15 +10,13 @@ import (
 	"semtag/pkg/versionControl"
 )
 
-func TagGit(ver version.Version, push bool) {
-	if versionControl.IsAlreadyTagged(ver.String()) {
-		log.Fatal("The current commit has already been tagged with ", ver.String())
-	}
-	tag := &versionControl.TagObj{
-		Name: ver.String(),
+func TagGit(tag *versionControl.TagObj, push bool) {
+	if versionControl.IsAlreadyTagged(tag.Name) {
+		log.Fatal("The current commit has already been tagged with ", tag.Name)
 	}
 	output.Debug("git tag:", tag)
 	if push {
+		tag.Create()
 		tag.Push()
 	}
 }
@@ -56,7 +54,7 @@ func HasRelevantChanges(relevantPaths []string) bool {
 
 func GetChangedFiles() string {
 	output.Debug("get changed files for this commit")
-	commit := versionControl.GetCommitObject().Hash.String()
+	commit := versionControl.GetHash()
 	out, err := terminal.Shellf("git diff %[1]s~1..%[1]s --name-only", commit)
 	if err != nil {
 		log.Fatalln(err)

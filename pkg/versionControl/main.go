@@ -7,9 +7,6 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/go-git/go-git/v5"
-	"github.com/go-git/go-git/v5/plumbing/object"
-
 	"semtag/pkg/output"
 	"semtag/pkg/terminal"
 )
@@ -19,19 +16,9 @@ const (
 )
 
 var (
-	r = Open()
-
 	ErrNotAGitRepository = errors.New("unable to find the .git folder")
 	ErrGetLastGitCommits = errors.New("failed to retrieve commits")
 )
-
-func Open() *git.Repository {
-	r, err := git.PlainOpen(git.GitDirName)
-	if err != nil {
-		log.Panic(ErrNotAGitRepository)
-	}
-	return r
-}
 
 func Commit(msg string) {
 	out, err := terminal.Shellf("git commit -m %q ", msg)
@@ -58,7 +45,7 @@ func Push(target string) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	output.Debug(out)
+	output.Info(out)
 }
 
 func Tag(tag string, message string) {
@@ -72,7 +59,7 @@ func Tag(tag string, message string) {
 func DescribeLong() string {
 	out, err := terminal.Shell("git describe --tags --long --dirty --always")
 	if err != nil {
-		return GetCommitObject().Hash.String()
+		return GetHash()
 	}
 	out = strings.Replace(out, "\n", "", -1)
 	return out
@@ -115,12 +102,8 @@ func GetTagsForCurrentCommit() (*string, error) {
 	return &out, err
 }
 
-func GetCommitObject() *object.Commit {
-	ref, err := r.Head()
-	if err != nil {
-		log.Panic(err)
-	}
-	out, err := r.CommitObject(ref.Hash())
+func GetHash() string {
+	out, err := terminal.Shell("git rev-parse HEAD")
 	if err != nil {
 		log.Panic(err)
 	}
@@ -136,15 +119,12 @@ func GetLastCommits(count int) (string, error) {
 }
 
 func Fetch() {
-	output.Debug("git fetch")
-	err := r.Fetch(&git.FetchOptions{
-		Progress: nil,
-	})
+	out, _ := terminal.GetEnv("SEMTAG_NOFETCH")
+	if out != "" {
+		return
+	}
+	_, err := terminal.Shell("git fetch")
 	if err != nil {
-		if strings.Contains(err.Error(), "up-to-date") {
-			output.Debug(err)
-			return
-		}
 		log.Panic(err)
 	}
 }

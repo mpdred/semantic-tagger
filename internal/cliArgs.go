@@ -3,14 +3,16 @@ package internal
 import (
 	"errors"
 	"flag"
+	"fmt"
 	"log"
 
+	"semtag/pkg/changelog"
 	"semtag/pkg/version"
 )
 
 const (
 	EmptyStringFlag     = ""
-	DefaultRelevantPath = "./"
+	DefaultRelevantPath = "."
 )
 
 var (
@@ -28,6 +30,9 @@ type CliArgs struct {
 	Push           bool
 	ShouldTagGit   bool
 	ExecuteCommand string
+
+	Changelog      bool
+	ChangelogRegex string
 
 	FilePath           string
 	FileVersionPattern string
@@ -60,8 +65,24 @@ func (args *CliArgs) ParseFlags() {
 	var versionScope string
 	flag.StringVar(&versionScope, "increment", "", "if set, increment the version scope: auto | major | minor | patch")
 	flag.BoolVar(&args.Push, "push", false, "if set, push the created/updated object(s): push the git tag; add, commit and push the updated file.")
-
 	flag.BoolVar(&args.ShouldTagGit, "git-tag", false, "if set, create an annotated tag")
+	flag.StringVar(&args.ExecuteCommand, "command", "", `execute a shell command for all version tags: use %s as a placeholder for the version number
+	e.g.:
+	version tags: v5, v5.0, v5.0.3, v5.0.3-32b0262
+	input: ./semtag -prefix='v' -command="docker tag $MY_IMAGE_NAME $MY_DOCKER_REGISTRY/app:%s"
+	output:
+		sh -c docker tag $MY_IMAGE_NAME $MY_DOCKER_REGISTRY/app:v5
+		sh -c docker tag $MY_IMAGE_NAME $MY_DOCKER_REGISTRY/app:v5.0
+		sh -c docker tag $MY_IMAGE_NAME $MY_DOCKER_REGISTRY/app:v5.0.3
+		sh -c docker tag $MY_IMAGE_NAME $MY_DOCKER_REGISTRY/app:v5.0.3-32b0262
+`)
+
+	flag.StringVar(&args.ChangelogRegex, "changelog-regex", changelog.ChangelogDefaultRegex, "if set, generate the changelog only for specific tags")
+	flag.BoolVar(&args.Changelog, "changelog", false, fmt.Sprintf(`if set, generate a full changelog for the repository. In order to have correct hyperlinks you will need to provide two environment variables for your web-based git repository: %s for the URL of the commits and %s for the URL of the tags
+	e.g.:
+	input: GIT_COMMIT_URL="https://gitlab.com/my_org/my_group/my_repository/-/commit/" GIT_TAG_URL="https://gitlab.com/my_org/my_group/my_repository/-/tags/" ./semtag -generate-changelog
+	output: a full repository changelog in a Markdown file that shows the commit name(s) included in each tag
+`, changelog.EnvVarGitCommitUrl, changelog.EnvVarGitTagUrl))
 
 	flag.StringVar(&args.FilePath, "file", "", `a file that contains the version number (e.g. setup.py)`)
 	flag.StringVar(&args.FileVersionPattern, "file-version-pattern", "", `the pattern expected for the file version
@@ -86,20 +107,13 @@ func (args *CliArgs) ParseFlags() {
 	input: ./semtag -path="src" -path="lib/" -path="Dockerfile"
 `)
 
-	flag.StringVar(&args.ExecuteCommand, "command", "", `execute a shell command for all version tags: use %s as a placeholder for the version number
-	e.g.:
-	version tags: v5, v5.0, v5.0.3, v5.0.3-32b0262
-	input: ./semtag -prefix='v' -command="docker tag $MY_IMAGE_NAME $MY_DOCKER_REGISTRY/app:%s" 
-	output:
-		sh -c docker tag $MY_IMAGE_NAME $MY_DOCKER_REGISTRY/app:v5
-		sh -c docker tag $MY_IMAGE_NAME $MY_DOCKER_REGISTRY/app:v5.0
-		sh -c docker tag $MY_IMAGE_NAME $MY_DOCKER_REGISTRY/app:v5.0.3
-		sh -c docker tag $MY_IMAGE_NAME $MY_DOCKER_REGISTRY/app:v5.0.3-32b0262
-`)
 	flag.Parse()
 
 	if (args.FilePath == EmptyStringFlag) != (args.FileVersionPattern == EmptyStringFlag) {
 		log.Fatalln(ErrOnlyOneDeployFileFlagsSet)
+	}
+	if len(args.RelevantPaths) == 0 {
+		args.RelevantPaths = relevantPaths{DefaultRelevantPath}
 	}
 
 	args.VersionScope.Parse(versionScope)

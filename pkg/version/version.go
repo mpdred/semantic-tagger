@@ -60,7 +60,7 @@ func (v *Version) GetLatestFromGit() {
 
 	raw := v.Raw(latest)
 	v.Load(raw)
-	v.Hash = versionControl.GetCommitObject().Hash.String()
+	v.Hash = versionControl.GetHash()
 }
 
 func (v *Version) Validate(version string) {
