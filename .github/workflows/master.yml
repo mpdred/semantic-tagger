@@ -47,4 +47,4 @@ jobs:
     - uses: actions/upload-artifact@master
       with:
         name: semtag
-        path: ./out/semtag
+        path: /tmp/semtag
