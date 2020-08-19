@@ -24,7 +24,7 @@ func main() {
 		Prefix: args.Prefix,
 		Suffix: args.Suffix,
 	}
-	if args.CustomVersion == internal.EmptyStringFlag {
+	if args.CustomVersion == internal.ArgEmptyString {
 		v.GetLatestFromGit()
 	} else {
 		v.UseVersionProvidedByUser(args.Prefix, args.CustomVersion, args.Suffix)
@@ -61,9 +61,9 @@ func main() {
 		}
 	}
 
-	shouldTagInFile := len(args.FilePath) > 0 && len(args.FileVersionPattern) > 0
+	shouldTagInFile := len(args.FileName) > 0 && len(args.FileVersionPattern) > 0
 	if shouldTagInFile {
-		internal.TagFile(v, args.FilePath, args.FileVersionPattern, args.Push)
+		internal.TagFile(v, args.FileName, args.FileVersionPattern, args.Push)
 		if !args.Push {
 			output.Logger().Debug(ErrNotPushMode)
 		}

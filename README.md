@@ -31,6 +31,5 @@ All other types increment the patch number (e.g. 4.0.7 -> 4.0.8)
 
 ## Docs
 - [how to test/build](docs/build.md) the project
-- what [command line arguments](docs/usage.md) are available
-- [examples](docs/examples.md) of how to use the compiled binary for creating Git tags or update version numbers in files
-- see the shell script for [Git configuration](docs/git.sh) for various configurations when running _Semantic Tagger_ in a CI executor environment (e.g. GitLab, Bitbucket, etc.)
+- what [command line arguments](docs/usage.md) are available and  how to use the compiled binary for creating Git tags or update version numbers in files
+- see the shell script for [Git configuration](docs/git.sh) for various hack configurations when running _Semantic Tagger_ in a CI executor environment (e.g. GitLab, Bitbucket, etc.)

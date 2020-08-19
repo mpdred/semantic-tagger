@@ -9,9 +9,11 @@ import (
 )
 
 const (
-	EnvVarGitCommitUrl    = "GIT_COMMIT_URL"
-	EnvVarGitTagUrl       = "GIT_TAG_URL"
+	EnvVarGitCommitUrl = "GIT_COMMIT_URL"
+	EnvVarGitTagUrl    = "GIT_TAG_URL"
+
 	ChangelogDefaultRegex = `^[0-9]+\.[0-9]+\.[0-9]+$`
+	DefaultChangelogFile  = "CHANGELOG.md"
 )
 
 func GenerateChangeLog(regex string) {
@@ -24,7 +26,8 @@ func GenerateChangeLog(regex string) {
 		output.Logger().Fatal(err)
 	}
 
-	script := fmt.Sprintf("export REGEX=%q ; ", regex) + `cat <<"EOF" | bash > CHANGELOG.md
+	script := fmt.Sprintf("export REGEX=%q ; export CHANGELOG_FILE=%s; ", regex, DefaultChangelogFile) +
+		`cat <<"EOF" | bash > "$CHANGELOG_FILE"
 #!/usr/bin/env bash
 set -uo pipefail
 
@@ -34,7 +37,7 @@ for current_tag in $(git tag --sort=-creatordate | grep -E "$REGEX" ); do
   if [ "$previous_tag" != 0 ]; then
     tag_date=$(git log -1 --pretty=format:'%ad' --date=iso8601 ${previous_tag})
     printf "## [${previous_tag}](https://bitbucket.org/projects/test/repos/my-project/tags/${previous_tag})\n${tag_date}\n\n"
-    git log ${current_tag}...${previous_tag} --pretty=format:'*  %s ([%h](https://bitbucket.org/projects/test/repos/my-project/commits/%H))' --reverse | grep -v Merge
+    git log ${current_tag}...${previous_tag} --pretty=format:'*  %s by [%aN](mailto:%aE) ([%h](https://bitbucket.org/projects/test/repos/my-project/commits/%H))' --reverse | grep -v Merge
     printf "\n\n"
   fi
 

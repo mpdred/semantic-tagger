@@ -15,7 +15,6 @@ var log *logrus.Logger
 
 func initLogger() {
 	log = logrus.New()
-	log.Formatter = new(logrus.TextFormatter)
 
 	logLevel := getLogLevel()
 	log.Level = logLevel
@@ -48,8 +47,7 @@ func getLogLevel() logrus.Level {
 	default:
 		return logrus.InfoLevel
 	}
-	Logger().Panic()
-	return -1
+	return logrus.InfoLevel
 }
 
 func Logger() *logrus.Logger {

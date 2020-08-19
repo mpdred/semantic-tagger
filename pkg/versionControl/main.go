@@ -117,10 +117,6 @@ func GetLastCommits(count int) (string, error) {
 }
 
 func Fetch() {
-	out, _ := terminal.GetEnv("SEMTAG_NOFETCH")
-	if out != "" {
-		return
-	}
 	_, err := terminal.Shell("git fetch")
 	if err != nil {
 		output.Logger().Panic(err)

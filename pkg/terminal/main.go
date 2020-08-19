@@ -16,9 +16,8 @@ import (
 const (
 	ShellName = "bash"
 
-	NoEnvVarValue             = ""
-	BadShellResponse   string = ""
-	EmptyShellResponse string = ""
+	NoEnvVarValue           = ""
+	BadShellResponse string = ""
 )
 
 var (
