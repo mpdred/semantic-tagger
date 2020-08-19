@@ -13,7 +13,7 @@ var log *logrus.Logger
 
 func initLogger() {
 	log = logrus.New()
-	log.Formatter = new(logrus.JSONFormatter)
+	log.Formatter = new(logrus.TextFormatter)
 	if isDebug() {
 		log.Level = logrus.TraceLevel
 		log.SetReportCaller(true)
