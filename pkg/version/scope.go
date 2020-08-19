@@ -18,8 +18,7 @@ type Scope struct {
 }
 
 const (
-	EMPTY = iota
-	AUTO
+	AUTO = iota
 	MAJOR
 	MINOR
 	PATCH
@@ -52,8 +51,6 @@ func (s *Scope) String() string {
 		return "patch"
 	case AUTO:
 		return "auto"
-	case EMPTY:
-		return EmptyScope
 	default:
 		output.Logger().Fatal(pkg.NewErrorDetails(ErrParseScopeId, s.Id))
 		return EmptyScope

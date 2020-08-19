@@ -191,7 +191,11 @@ func (args *CliArgs) loadGenericVersionFlags() {
 `,
 			binary, flagSuffix))
 
-	flag.StringVar(&args.CustomVersion, "version", "", `if set, use the provided version`)
+	flag.StringVar(
+		&args.CustomVersion,
+		flagVersion,
+		"",
+		`if set, use the provided version`)
 
 	var versionScope string
 	flag.StringVar(

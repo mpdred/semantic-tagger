@@ -159,7 +159,7 @@ func (v *Version) IncrementAuto(scopeAsString string) {
 			s.Id = MINOR
 		}
 	}
-	output.Logger().Debug("increment version number:", s.String())
+	output.Logger().Info("increment version number: ", s.String())
 	v.Scope = s
 	v.Increment(s)
 }
