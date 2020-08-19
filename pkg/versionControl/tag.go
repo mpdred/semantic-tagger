@@ -22,7 +22,7 @@ func (t *TagObj) Create() {
 	if t.Message == "" {
 		t.GenerateMessage()
 	}
-	output.Debug("create tag:", t)
+	output.Logger().Debug("create tag:", t)
 	Tag(t.Name, t.Message)
 }
 

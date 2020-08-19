@@ -3,7 +3,6 @@ package version
 import (
 	"errors"
 	"fmt"
-	"log"
 	"regexp"
 	"strconv"
 	"strings"
@@ -49,7 +48,7 @@ func (v *Version) GetLatestFromGit() {
 
 	tag, err := versionControl.GetLatestTag(v.Prefix, v.Suffix)
 	if err != nil {
-		output.Debug(err)
+		output.Logger().Debug(err)
 	} else {
 		latest = *tag
 	}
@@ -69,7 +68,7 @@ func (v *Version) Validate(version string) {
 	if len(allStrings) == 1 {
 		return
 	}
-	log.Fatal(pkg.NewErrorDetails(ErrParseVersion, version))
+	output.Logger().Fatal(pkg.NewErrorDetails(ErrParseVersion, version))
 }
 
 func (v *Version) String() string {
@@ -96,15 +95,15 @@ func (v *Version) Load(raw string) {
 	var err error
 	v.Major, err = strconv.Atoi(vSplit[0])
 	if err != nil {
-		log.Fatal(pkg.NewErrorDetails(ErrParseVersionMajor, err))
+		output.Logger().Fatal(pkg.NewErrorDetails(ErrParseVersionMajor, err))
 	}
 	v.Minor, err = strconv.Atoi(vSplit[1])
 	if err != nil {
-		log.Fatal(pkg.NewErrorDetails(ErrParseVersionMinor, err))
+		output.Logger().Fatal(pkg.NewErrorDetails(ErrParseVersionMinor, err))
 	}
 	v.Patch, err = strconv.Atoi(vSplit[2])
 	if err != nil {
-		log.Fatal(pkg.NewErrorDetails(ErrParseVersionPatch, err))
+		output.Logger().Fatal(pkg.NewErrorDetails(ErrParseVersionPatch, err))
 	}
 }
 
@@ -148,7 +147,7 @@ func (v *Version) appendPrefix(list []string) []string {
 func (v *Version) IncrementAuto(scopeAsString string) {
 	out, err := versionControl.GetLastCommits(-1)
 	if err != nil {
-		log.Panic(err)
+		output.Logger().Panic(err)
 	}
 	s := Scope{PATCH}
 	if strings.ToLower(scopeAsString) == "major" ||
@@ -160,7 +159,7 @@ func (v *Version) IncrementAuto(scopeAsString string) {
 			s.Id = MINOR
 		}
 	}
-	output.Debug("increment version number:", s.String())
+	output.Logger().Debug("increment version number:", s.String())
 	v.Scope = s
 	v.Increment(s)
 }
@@ -177,6 +176,6 @@ func (v *Version) Increment(s Scope) {
 	case PATCH:
 		v.Patch += 1
 	default:
-		log.Panic(ErrIncrementVersion, s)
+		output.Logger().Panic(ErrIncrementVersion, s)
 	}
 }

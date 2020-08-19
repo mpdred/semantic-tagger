@@ -1,31 +1,37 @@
 package output
 
 import (
-	"fmt"
-	"log"
 	"os"
 	"strings"
+
+	"github.com/sirupsen/logrus"
 )
 
-var debugEnvVar = os.Getenv("DEBUG")
+const envVarDebug = "DEBUG"
 
-func IsDebug() bool {
-	return strings.ToLower(debugEnvVar) == "true"
-}
+var log *logrus.Logger
 
-func Debug(v ...interface{}) {
-	if IsDebug() {
-		log.Println(v...)
+func initLogger() {
+	log = logrus.New()
+	log.Formatter = new(logrus.JSONFormatter)
+	if isDebug() {
+		log.Level = logrus.TraceLevel
+		log.SetReportCaller(true)
 	}
-}
-func Debugf(format string, v ...interface{}) {
-	Debug(fmt.Sprintf(format, v...))
-}
-
-func Info(v ...interface{}) {
-	log.Println(v...)
+	log.Out = os.Stdout
+	log.Trace("logger initialized")
 }
 
-func Infof(format string, v ...interface{}) {
-	Info(fmt.Sprintf(format, v...))
+func isDebug() bool {
+	out := os.Getenv(envVarDebug)
+	b := strings.ToLower(out) == "true"
+	Logger().Trace("debug mode:", b)
+	return b
+}
+
+func Logger() *logrus.Logger {
+	if log == nil {
+		initLogger()
+	}
+	return log
 }

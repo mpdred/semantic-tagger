@@ -3,7 +3,6 @@ package versionControl
 import (
 	"errors"
 	"fmt"
-	"log"
 	"regexp"
 	"strings"
 
@@ -16,44 +15,43 @@ const (
 )
 
 var (
-	ErrNotAGitRepository = errors.New("unable to find the .git folder")
 	ErrGetLastGitCommits = errors.New("failed to retrieve commits")
 )
 
 func Commit(msg string) {
 	out, err := terminal.Shellf("git commit -m %q ", msg)
 	if err != nil {
-		log.Fatal(err)
+		output.Logger().Fatal(err)
 	}
-	output.Debug(out)
+	output.Logger().Debug(out)
 }
 
 func Add(file string) {
 	out, err := terminal.Shell("git add " + file)
 	if err != nil {
-		log.Fatal(err)
+		output.Logger().Fatal(err)
 	}
-	output.Debug(out)
+	output.Logger().Debug(out)
 }
 
 func Push(target string) {
 	if target == "" {
 		target = "--all"
-		output.Debug("no target specified; use default target:", target)
+		output.Logger().Debug("no target specified; use default target:", target)
 	}
 	out, err := terminal.Shell("git push origin " + target)
 	if err != nil {
-		log.Fatal(err)
+		output.Logger().Fatal(err)
 	}
-	output.Info(out)
+	output.Logger().Info(out)
 }
 
 func Tag(tag string, message string) {
 	out, err := terminal.Shellf("git tag --annotate %q --message %q", tag, message)
 	if err != nil {
-		log.Fatal(err)
+		output.Logger().Fatal(err)
 	}
-	output.Debug(out)
+	output.Logger().Debug(out)
 }
 
 func DescribeLong() string {
@@ -86,7 +84,7 @@ func GetLatestTag(prefix string, suffix string) (*string, error) {
 func IsAlreadyTagged(ver string) bool {
 	tags, err := GetTagsForCurrentCommit()
 	if err != nil {
-		output.Debug(err)
+		output.Logger().Debug(err)
 		return false
 	}
 	re := regexp.MustCompile("^" + ver + "$")
@@ -105,7 +103,7 @@ func GetTagsForCurrentCommit() (*string, error) {
 func GetHash() string {
 	out, err := terminal.Shell("git rev-parse HEAD")
 	if err != nil {
-		log.Panic(err)
+		output.Logger().Panic(err)
 	}
 	return out
 }
@@ -125,6 +123,6 @@ func Fetch() {
 	}
 	_, err := terminal.Shell("git fetch")
 	if err != nil {
-		log.Panic(err)
+		output.Logger().Panic(err)
 	}
 }

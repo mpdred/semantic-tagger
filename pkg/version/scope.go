@@ -2,10 +2,10 @@ package version
 
 import (
 	"errors"
-	"log"
 	"strings"
 
 	"semtag/pkg"
+	"semtag/pkg/output"
 )
 
 const EmptyScope string = "undefined"
@@ -38,7 +38,7 @@ func (s *Scope) Parse(scopeToParse string) {
 	case "patch":
 		s.Id = PATCH
 	default:
-		log.Fatal(pkg.NewErrorDetails(ErrParseScopeName, scopeToParse))
+		output.Logger().Fatal(pkg.NewErrorDetails(ErrParseScopeName, scopeToParse))
 	}
 }
 
@@ -55,7 +55,7 @@ func (s *Scope) String() string {
 	case EMPTY:
 		return EmptyScope
 	default:
-		log.Fatal(pkg.NewErrorDetails(ErrParseScopeId, s.Id))
+		output.Logger().Fatal(pkg.NewErrorDetails(ErrParseScopeId, s.Id))
 		return EmptyScope
 	}
 }

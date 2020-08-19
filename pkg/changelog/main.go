@@ -2,9 +2,9 @@ package changelog
 
 import (
 	"fmt"
-	"log"
 	"strings"
 
+	"semtag/pkg/output"
 	"semtag/pkg/terminal"
 )
 
@@ -17,11 +17,11 @@ const (
 func GenerateChangeLog(regex string) {
 	commitUrl, err := terminal.GetEnv(EnvVarGitCommitUrl)
 	if err != nil {
-		log.Fatal(err)
+		output.Logger().Fatal(err)
 	}
 	tagUrl, err := terminal.GetEnv(EnvVarGitTagUrl)
 	if err != nil {
-		log.Fatal(err)
+		output.Logger().Fatal(err)
 	}
 
 	script := fmt.Sprintf("export REGEX=%q ; ", regex) + `cat <<"EOF" | bash > CHANGELOG.md
@@ -45,6 +45,6 @@ EOF`
 	script = strings.Replace(script, "https://bitbucket.org/projects/test/repos/my-project/tags", tagUrl, 1)
 	_, err = terminal.Shell(script)
 	if err != nil {
-		log.Panic(err)
+		output.Logger().Panic(err)
 	}
 }

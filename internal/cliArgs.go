@@ -4,9 +4,9 @@ import (
 	"errors"
 	"flag"
 	"fmt"
-	"log"
 
 	"semtag/pkg/changelog"
+	"semtag/pkg/output"
 	"semtag/pkg/version"
 )
 
@@ -110,7 +110,7 @@ func (args *CliArgs) ParseFlags() {
 	flag.Parse()
 
 	if (args.FilePath == EmptyStringFlag) != (args.FileVersionPattern == EmptyStringFlag) {
-		log.Fatalln(ErrOnlyOneDeployFileFlagsSet)
+		output.Logger().Fatalln(ErrOnlyOneDeployFileFlagsSet)
 	}
 	if len(args.RelevantPaths) == 0 {
 		args.RelevantPaths = relevantPaths{DefaultRelevantPath}

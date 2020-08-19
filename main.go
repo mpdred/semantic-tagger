@@ -3,7 +3,6 @@ package main
 import (
 	"errors"
 	"fmt"
-	"log"
 
 	"semtag/internal"
 	"semtag/pkg/changelog"
@@ -47,7 +46,7 @@ func main() {
 		for _, val := range v.AsList() {
 			_, err := terminal.Shellf(args.ExecuteCommand, val)
 			if err != nil {
-				log.Fatal(err)
+				output.Logger().Fatal(err)
 			}
 		}
 
@@ -60,7 +59,7 @@ func main() {
 			}
 			internal.TagGit(tag, args.Push)
 			if !args.Push {
-				output.Debug(ErrNotPushMode)
+				output.Logger().Debug(ErrNotPushMode)
 			}
 		}
 	}
@@ -69,7 +68,7 @@ func main() {
 	if shouldTagInFile {
 		internal.TagFile(v, args.FilePath, args.FileVersionPattern, args.Push)
 		if !args.Push {
-			output.Debug(ErrNotPushMode)
+			output.Logger().Debug(ErrNotPushMode)
 		}
 	}
 

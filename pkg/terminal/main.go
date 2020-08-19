@@ -7,6 +7,8 @@ import (
 	"os/exec"
 	"strings"
 
+	"github.com/sirupsen/logrus"
+
 	"semtag/pkg"
 	"semtag/pkg/output"
 )
@@ -57,12 +59,15 @@ func execute(cmd string) ([]byte, error) {
 	out, err := c.Output()
 	outAsString := string(out)
 
-	debugDetails := fmt.Sprintf("\n$ %s\n%s\n", c, outAsString)
-	output.Debug(debugDetails)
+	output.Logger().WithFields(logrus.Fields{
+		"shellCommand": cmd,
+		"shellOutput":  outAsString,
+	}).Debug("execute shell command")
+
 	if err != nil {
 		return []byte(BadShellResponse), pkg.NewErrorDetails(
 			ErrShellCommand,
-			debugDetails)
+			c, outAsString)
 	}
 	return out, nil
 }
