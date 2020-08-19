@@ -31,11 +31,8 @@ func main() {
 	}
 
 	shouldIncrementVersion := args.VersionScope.String() != version.EmptyScope
-	if !shouldIncrementVersion {
-		fmt.Print(v.String())
-	} else {
+	if shouldIncrementVersion {
 		v.IncrementAuto(args.VersionScope.String())
-		fmt.Print(v.String())
 	}
 
 	if args.Push {
@@ -75,4 +72,6 @@ func main() {
 	if args.Changelog {
 		changelog.GenerateChangeLog(args.ChangelogRegex)
 	}
+
+	fmt.Print(v.String())
 }
