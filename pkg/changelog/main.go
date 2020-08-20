@@ -35,9 +35,9 @@ previous_tag=0
 for current_tag in $(git tag --sort=-creatordate | grep -E "$REGEX" ); do
 
   if [ "$previous_tag" != 0 ]; then
-    tag_date=$(git log -1 --pretty=format:'%ad' --date=iso8601 ${previous_tag})
+    tag_date=$(TZ=UTC git log -1 --pretty=format:'%ad' --date=iso-local ${previous_tag})
     printf "## [${previous_tag}](https://bitbucket.org/projects/test/repos/my-project/tags/${previous_tag})\n${tag_date}\n\n"
-    git log ${current_tag}...${previous_tag} --pretty=format:'*  %s by [%aN](mailto:%aE) ([%h](https://bitbucket.org/projects/test/repos/my-project/commits/%H))' --reverse | grep -v Merge
+    TZ=UTC git log ${current_tag}...${previous_tag} --pretty=format:'*  %s by [%aN](mailto:%aE) ([%h](https://bitbucket.org/projects/test/repos/my-project/commits/%H))' --reverse | grep -v Merge
     printf "\n\n"
   fi
 
