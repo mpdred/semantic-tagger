@@ -14,5 +14,6 @@ coverage.html
 
 .idea/
 out/
+bin/
 
 CHANGELOG.md

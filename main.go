@@ -20,23 +20,12 @@ func main() {
 	args := internal.CliArgs{}
 	args.ParseFlags()
 
-	v := version.Version{
-		Prefix: args.Prefix,
-		Suffix: args.Suffix,
-	}
-	if args.CustomVersion == internal.ArgEmptyString {
-		v.GetLatestFromGit()
-	} else {
-		v.UseVersionProvidedByUser(args.Prefix, args.CustomVersion, args.Suffix)
-	}
-
-	shouldIncrementVersion := args.VersionScope.String() != version.EmptyScope
-	if shouldIncrementVersion {
-		v.IncrementAuto(args.VersionScope.String())
-	}
+	v := setVersion(args)
 
 	if args.Push {
-		versionControl.TrySetGitCredentialsBasicAuth()
+		if err := versionControl.TrySetGitCredentialsBasicAuth(); err != nil {
+			output.Logger().Debug(err)
+		}
 	}
 
 	if args.ExecuteCommand != "" {
@@ -46,32 +35,75 @@ func main() {
 				output.Logger().Fatal(err)
 			}
 		}
-
 	}
 
 	if args.ShouldTagGit {
-		if internal.HasRelevantChanges(args.RelevantPaths) {
-			tag := &versionControl.TagObj{
+		hasRelevantChanges, err := internal.HasRelevantChanges(args.RelevantPaths)
+		if err != nil {
+			output.Logger().Fatal(err)
+		}
+
+		if hasRelevantChanges {
+			tag := &versionControl.Tag{
 				Name: v.String(),
 			}
-			internal.TagGit(tag, args.Push)
+			if err := internal.TagGit(tag, args.Push); err != nil {
+				output.Logger().Fatal(err)
+			}
 			if !args.Push {
-				output.Logger().Debug(ErrNotPushMode)
+				output.Logger().Warn(ErrNotPushMode)
 			}
 		}
 	}
 
 	shouldTagInFile := len(args.FileName) > 0 && len(args.FileVersionPattern) > 0
 	if shouldTagInFile {
-		internal.TagFile(v, args.FileName, args.FileVersionPattern, args.Push)
+		if err := internal.TagFile(v, args.FileName, args.FileVersionPattern, args.Push); err != nil {
+			output.Logger().Fatal(err)
+		}
 		if !args.Push {
-			output.Logger().Debug(ErrNotPushMode)
+			output.Logger().Warn(ErrNotPushMode)
 		}
 	}
 
 	if args.Changelog {
-		changelog.GenerateChangeLog(args.ChangelogRegex)
+		chLog, err := changelog.NewLog()
+		if err != nil {
+			output.Logger().Fatal(err)
+		}
+		chLog.Prefix = args.Prefix
+		chLog.Suffix = args.Suffix
+		chLog.Regex = args.ChangelogRegex
+		if err := chLog.Generate(); err != nil {
+			output.Logger().Fatal(err)
+		}
 	}
 
+	// print the version to stdout; execute as the last command so that it can be grepped by simple shell scripts
 	fmt.Print(v.String())
+}
+
+func setVersion(args internal.CliArgs) version.Version {
+	v := version.Version{
+		Prefix: args.Prefix,
+		Suffix: args.Suffix,
+	}
+
+	if args.CustomVersion == "" {
+		if err := v.SetVersionFromGit(); err != nil {
+			output.Logger().Fatal(err)
+		}
+	} else {
+		if err := v.UseCustomVersion(args.Prefix, args.CustomVersion, args.Suffix); err != nil {
+			output.Logger().Fatal(err)
+		}
+	}
+
+	shouldIncrementVersion := args.VersionScope.String() != ""
+	if shouldIncrementVersion {
+		if err := v.SetScope(args.VersionScope.String()); err != nil {
+			output.Logger().Fatal(err)
+		}
+	}
+	return v
 }

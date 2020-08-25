@@ -1,6 +1,7 @@
 .idea/
 .git/
 out/
+bin/
 
 Dockerfile
 CHANGELOG.md

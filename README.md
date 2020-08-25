@@ -3,7 +3,7 @@
 Increment a version number as per [Semantic Versioning 2.0.0 specifications](https://semver.org/)
 
 
-If you don't provide the current version, Git tags will be checked to see if they contain a version string as defined at https://semver.org/ 
+If you don't provide the current version, Git tags will be checked to see if they contain a version string as defined at https://semver.org/
 
 To determine the type of change, the [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/) rules are used (you can override this with a cli argument):
 > The commit message should be structured as follows:

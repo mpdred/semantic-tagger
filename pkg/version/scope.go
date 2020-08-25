@@ -2,16 +2,14 @@ package version
 
 import (
 	"errors"
+	"fmt"
 	"strings"
-
-	"semtag/pkg"
-	"semtag/pkg/output"
 )
 
-const EmptyScope string = "undefined"
-
-var ErrParseScopeName = errors.New("scope name can't be parsed")
-var ErrParseScopeId = errors.New("scope id can't be parsed")
+var (
+	ErrParseScopeName = errors.New("scope name can't be parsed")
+	ErrParseScopeId   = errors.New("scope id can't be parsed")
+)
 
 type Scope struct {
 	Id int
@@ -24,7 +22,8 @@ const (
 	PATCH
 )
 
-func (s *Scope) Parse(scopeToParse string) {
+// Parse a string that contains a scope and set the Scope's id
+func (s *Scope) Parse(scopeToParse string) error {
 	scopeToParse = strings.ToLower(scopeToParse)
 	switch scopeToParse {
 	case "":
@@ -37,8 +36,9 @@ func (s *Scope) Parse(scopeToParse string) {
 	case "patch":
 		s.Id = PATCH
 	default:
-		output.Logger().Fatal(pkg.NewErrorDetails(ErrParseScopeName, scopeToParse))
+		return errors.New(fmt.Sprintf("%v: %s", ErrParseScopeName, scopeToParse))
 	}
+	return nil
 }
 
 func (s *Scope) String() string {
@@ -52,7 +52,6 @@ func (s *Scope) String() string {
 	case AUTO:
 		return "auto"
 	default:
-		output.Logger().Fatal(pkg.NewErrorDetails(ErrParseScopeId, s.Id))
-		return EmptyScope
+		return "auto"
 	}
 }

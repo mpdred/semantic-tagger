@@ -1,24 +1,35 @@
 package versionControl
 
 import (
-	"log"
+	"fmt"
+
+	"github.com/sirupsen/logrus"
 
 	"semtag/pkg/output"
 	"semtag/pkg/terminal"
 )
 
-func TrySetGitCredentialsBasicAuth() {
-	gitUsername, err := terminal.GetEnv("GIT_USERNAME")
+const (
+	EnvVarGitUsername = "GIT_USERNAME"
+	EnvVarGitPassword = "GIT_PASSWORD"
+)
+
+// TrySetGitCredentialsBasicAuth attempts to set the git config username and password if the environment variables are found (EnvVarGitUsername, EnvVarGitPassword)
+func TrySetGitCredentialsBasicAuth() error {
+	gitUsername, err := terminal.GetEnv(EnvVarGitUsername)
 	if err != nil {
-		return
+		return nil
 	}
-	gitPassword, err := terminal.GetEnv("GIT_PASSWORD")
+	gitPassword, err := terminal.GetEnv(EnvVarGitPassword)
 	if err != nil {
-		return
+		return nil
 	}
-	_, err = terminal.Shellf(`git config credential.helper '!f() { sleep 1; echo "username=%v"; echo "password=%v"; }; f'`, gitUsername, gitPassword)
-	if err != nil {
-		output.Logger().Fatal(err)
+	if _, err := terminal.Shellf(`git config credential.helper '!f() { sleep 1; echo "username=%v"; echo "password=%v"; }; f'`, gitUsername, gitPassword); err != nil {
+		return fmt.Errorf("failed setting the username and password to git credential.helper: %#v", err)
 	}
-	log.Printf("add to git credential.helper: %s, $GIT_PASSWORD\n", gitUsername)
+	output.Logger().WithFields(logrus.Fields{
+		"gitUsername": gitUsername,
+		"gitPassword": "***",
+	}).Info("added username and password to git credential.helper")
+	return nil
 }

@@ -24,8 +24,12 @@ func Test_Increment(t *testing.T) {
 	for _, tb := range tables {
 		t.Run("Test Increment", func(t *testing.T) {
 			ver := Version{}
-			ver.Load(tb.ver)
-			ver.Increment(tb.scope)
+			if err := ver.load(tb.ver); err != nil {
+				t.Error(err)
+			}
+			if err := ver.Increment(tb.scope); err != nil {
+				t.Error(err)
+			}
 			got := ver.String()
 			assertCorrectMessage(t, got, tb.want, tb.scope)
 		})
@@ -37,11 +41,13 @@ func Test_AsList(t *testing.T) {
 		gitSha       string
 		expectedList []string
 	}{
-		{"g3ed223b", []string{"0.2.1-g3ed223b", "0.2.1", "0.2", "0"}},
+		{"a3ed223b", []string{"0.2.1-ga3ed223b", "0.2.1", "0.2", "0"}},
 	}
 
 	ver := Version{}
-	ver.Load("0.2.1")
+	if err := ver.load("0.2.1"); err != nil {
+		t.Error(err)
+	}
 	for _, tb := range tables {
 		ver.Hash = tb.gitSha
 		actualList := ver.AsList()
@@ -73,7 +79,9 @@ func Test_String(t *testing.T) {
 		ver := Version{}
 		ver.Prefix = tb.prefix
 		ver.Suffix = tb.suffix
-		ver.Load(vNumber)
+		if err := ver.load(vNumber); err != nil {
+			t.Error(err)
+		}
 		if tb.expectedOutput != ver.String() {
 			t.Errorf("expected %v but found %v", tb.expectedOutput, ver.String())
 		}
