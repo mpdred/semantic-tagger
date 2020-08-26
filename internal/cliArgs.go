@@ -59,28 +59,28 @@ type CliArgs struct {
 
 var tempVersionScope string
 
-func (a *CliArgs) ParseFlags() {
-	a.loadAllFlags()
-	a.parseAndInit()
-	a.guardAgainstInvalidArgs()
+func (args *CliArgs) ParseFlags() {
+	args.loadAllFlags()
+	args.parseAndInit()
+	args.guardAgainstInvalidArgs()
 }
 
-func (a *CliArgs) parseAndInit() {
+func (args *CliArgs) parseAndInit() {
 	flag.Parse()
 
-	if len(a.RelevantPaths) == 0 {
-		a.RelevantPaths = versionControl.RelevantPaths{versionControl.DefaultRelevantPath}
+	if len(args.RelevantPaths) == 0 {
+		args.RelevantPaths = versionControl.RelevantPaths{versionControl.DefaultRelevantPath}
 	}
-	if err := a.VersionScope.Parse(tempVersionScope); err != nil {
+	if err := args.VersionScope.Parse(tempVersionScope); err != nil {
 		output.Logger().Fatal(err)
 	}
 
-	output.Logger().WithField("args", fmt.Sprintf("%#v", a)).Info("arguments parsed")
+	output.Logger().WithField("args", fmt.Sprintf("%#v", args)).Info("arguments parsed")
 }
 
-func (a *CliArgs) loadAllFlags() {
+func (args *CliArgs) loadAllFlags() {
 	flag.Var(
-		&a.RelevantPaths,
+		&args.RelevantPaths,
 		flagPath,
 		fmt.Sprintf(`if set, create a git tag only if changes are detected in the provided path(s)
 	e.g.:
@@ -88,19 +88,19 @@ func (a *CliArgs) loadAllFlags() {
 `,
 			binaryName, flagPath))
 
-	a.loadGenericVersionFlags()
-	a.loadBaseActionFlags()
-	a.loadChangelogFlags()
-	a.loadFileActionFlags()
+	args.loadGenericVersionFlags()
+	args.loadBaseActionFlags()
+	args.loadChangelogFlags()
+	args.loadFileActionFlags()
 }
 
-func (a *CliArgs) loadFileActionFlags() {
+func (args *CliArgs) loadFileActionFlags() {
 	flag.StringVar(
-		&a.FileName,
+		&args.FileName,
 		flagFileName,
 		"",
 		`a file that contains the version number (e.g. setup.py)`)
-	flag.StringVar(&a.FileVersionPattern, "file-version-pattern", "", `the pattern expected for the file version
+	flag.StringVar(&args.FileVersionPattern, "file-version-pattern", "", `the pattern expected for the file version
 	e.g.:
 	$ cat setup.py
 		setup(
@@ -119,15 +119,15 @@ func (a *CliArgs) loadFileActionFlags() {
 
 }
 
-func (a *CliArgs) loadChangelogFlags() {
+func (args *CliArgs) loadChangelogFlags() {
 	flag.StringVar(
-		&a.ChangelogRegex,
+		&args.ChangelogRegex,
 		flagChangelogRegex,
 		changelog.DefaultRegexFormat,
 		"if set, generate the changelog only for specific tags")
 
 	flag.BoolVar(
-		&a.Changelog,
+		&args.Changelog,
 		flagChangelog,
 		false,
 		fmt.Sprintf(`if set, generate a full changelog for the repository. In order to have correct hyperlinks you will need to provide two environment variables for your web-based git repository: %[1]s for the URL of the commits and %[2]s for the URL of the tags
@@ -139,21 +139,21 @@ func (a *CliArgs) loadChangelogFlags() {
 
 }
 
-func (a *CliArgs) loadBaseActionFlags() {
+func (args *CliArgs) loadBaseActionFlags() {
 	flag.BoolVar(
-		&a.Push,
+		&args.Push,
 		flagShouldPush,
 		false,
 		"if set, push the created/updated object(s): push the git tag AND/OR add, commit and push the updated file")
 
 	flag.BoolVar(
-		&a.ShouldTagGit,
+		&args.ShouldTagGit,
 		flagShouldTagGit,
 		false,
 		"if set, create an annotated tag")
 
 	flag.StringVar(
-		&a.ExecuteCommand,
+		&args.ExecuteCommand,
 		flagExecuteCommand,
 		"",
 		`execute a shell command for all version tags: use %s as a placeholder for the version number
@@ -169,9 +169,9 @@ func (a *CliArgs) loadBaseActionFlags() {
 
 }
 
-func (a *CliArgs) loadGenericVersionFlags() {
+func (args *CliArgs) loadGenericVersionFlags() {
 	flag.StringVar(
-		&a.Prefix,
+		&args.Prefix,
 		flagPrefix,
 		"",
 		fmt.Sprintf(`if set, append the prefix to the version number
@@ -182,7 +182,7 @@ func (a *CliArgs) loadGenericVersionFlags() {
 			binaryName, flagPrefix))
 
 	flag.StringVar(
-		&a.Suffix,
+		&args.Suffix,
 		flagSuffix,
 		"",
 		fmt.Sprintf(`if set, append the suffix to the version number
@@ -193,7 +193,7 @@ func (a *CliArgs) loadGenericVersionFlags() {
 			binaryName, flagSuffix))
 
 	flag.StringVar(
-		&a.CustomVersion,
+		&args.CustomVersion,
 		flagVersion,
 		"",
 		`if set, use the provided version`)
@@ -208,8 +208,8 @@ func (a *CliArgs) loadGenericVersionFlags() {
 
 }
 
-func (a *CliArgs) guardAgainstInvalidArgs() {
-	if (a.FileName == "") != (a.FileVersionPattern == "") {
+func (args *CliArgs) guardAgainstInvalidArgs() {
+	if (args.FileName == "") != (args.FileVersionPattern == "") {
 		output.Logger().WithFields(logrus.Fields{
 			"flags": []string{flagFileName, flagFileVersionPattern},
 		}).Fatalln(errMissingArgs)

@@ -254,7 +254,6 @@ func Test_SetScope(t *testing.T) {
 	}{
 		{"major", Version{Major: 2, Minor: 0, Patch: 0}},
 		{"minor", Version{Major: 1, Minor: 3, Patch: 0}},
-		{"foo", Version{Major: 1, Minor: 2, Patch: 4}},
 	}
 
 	// act

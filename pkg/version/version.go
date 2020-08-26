@@ -258,7 +258,7 @@ Increment the version number based on the Scope change
 	- all other change types increment the patch number (e.g. 4.0.7 -> 4.0.8)
 */
 func (v *Version) Increment(s Scope) error {
-	oldV := v
+	versionBeforeIncrement := v.String()
 	switch s.Id {
 	case MAJOR:
 		v.Major += 1
@@ -274,8 +274,9 @@ func (v *Version) Increment(s Scope) error {
 	}
 
 	output.Logger().WithFields(logrus.Fields{
-		"version":            oldV.String(),
-		"incrementedVersion": v.String(),
+		"versionBeforeIncrement": versionBeforeIncrement,
+		"versionAfterIncrement":  v.String(),
+		"versionScope":           s.String(),
 	}).Debug()
 
 	return nil

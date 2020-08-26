@@ -27,7 +27,7 @@ compile: dependencies ## compile the packages and the dependencies
 test: dependencies ## run tests
 	@set -euo pipefail
 	@echo -e "\n\texecute tests"
-	go test -v ./... -cover -coverprofile=c.out
+	go test ./... -cover -coverprofile=c.out
 	go tool cover -html=c.out -o coverage.html
 
 
