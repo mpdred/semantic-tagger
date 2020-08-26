@@ -13,6 +13,8 @@ const (
 	DefaultRelevantPath = "."
 )
 
+var g VersionControl = &GitRepository{}
+
 type RelevantPaths []string
 
 func (i *RelevantPaths) String() string {
@@ -52,7 +54,7 @@ func HasRelevantChanges(relevantPaths []string) (bool, error) {
 
 // GetChangedFiles checks the HEAD commit for changes and return the changed file names
 func GetChangedFiles() (string, error) {
-	commit, err := GetHash()
+	commit, err := g.GetHash()
 	if err != nil {
 		return "", err
 	}

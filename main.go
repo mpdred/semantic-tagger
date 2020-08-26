@@ -18,6 +18,8 @@ var (
 	ErrNotPushMode = errors.New("push to Git skipped: use the `-push` flag to push changes")
 )
 
+var GitRepo versionControl.VersionControl = &versionControl.GitRepository{}
+
 func main() {
 	args := internal.CliArgs{}
 	args.ParseFlags()
@@ -144,14 +146,14 @@ func TagFile(ver version.Version, filePath string, versionPattern string, pushCh
 	if err := f.Write(newContents); err != nil {
 		return err
 	}
-	if err := versionControl.Add(filePath); err != nil {
+	if err := GitRepo.Add(filePath); err != nil {
 		return err
 	}
 	if pushChanges {
-		if err := versionControl.Commit(commitMsgVerBump + ver.String()); err != nil {
+		if err := GitRepo.Commit(commitMsgVerBump + ver.String()); err != nil {
 			return err
 		}
-		if err := versionControl.Push(""); err != nil {
+		if err := GitRepo.Push(""); err != nil {
 			return err
 		}
 	}

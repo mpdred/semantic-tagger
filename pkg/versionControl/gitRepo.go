@@ -11,8 +11,10 @@ import (
 	"semtag/pkg/terminal"
 )
 
-// Commit the current changes
-func Commit(msg string) error {
+type GitRepository struct {
+}
+
+func (g *GitRepository) Commit(msg string) error {
 	_, err := terminal.Shellf("git commit -m %q ", msg)
 	if err != nil {
 		return fmt.Errorf("unable to commit changes to git: %v", err)
@@ -21,8 +23,7 @@ func Commit(msg string) error {
 	return nil
 }
 
-// Add a file to the git index
-func Add(file string) error {
+func (g *GitRepository) Add(file string) error {
 	_, err := terminal.Shell("git add " + file)
 	if err != nil {
 		return fmt.Errorf("unable to add file %q to git: %v", file, err)
@@ -33,8 +34,7 @@ func Add(file string) error {
 	return nil
 }
 
-// Push the local commits to remote
-func Push(target string) error {
+func (g *GitRepository) Push(target string) error {
 	if target == "" {
 		target = "--all"
 		output.Logger().WithField("target", target).Debug("no target specified, using default target")
@@ -47,8 +47,7 @@ func Push(target string) error {
 	return nil
 }
 
-// Tag the current commit with an annotated git tag
-func TagCommit(tag string, message string) error {
+func (g *GitRepository) TagCommit(tag string, message string) error {
 	_, err := terminal.Shellf("git tag --annotate %q --message %q", tag, message)
 	if err != nil {
 		return fmt.Errorf("unable to push tag %q (%s): %v", tag, message, err)
@@ -60,20 +59,18 @@ func TagCommit(tag string, message string) error {
 	return nil
 }
 
-// DescribeLong gives an object a human readable name based on an available ref
-func DescribeLong() (string, error) {
+func (g *GitRepository) DescribeLong() (string, error) {
 	out, err := terminal.Shell("git describe --tags --long --dirty --always")
 	if err != nil {
 		output.Logger().WithField("err", err).Warn("git describe failed; falling back to using the hash")
-		return GetHash()
+		return g.GetHash()
 	}
 	out = strings.Replace(out, "\n", "", -1)
 	return out, nil
 }
 
-// GetLatestTag returns the latest tag that adheres to the semantic versioning regex and that has the provided prefix and suffix
-func GetLatestTag(prefix, baseRegex, suffix string) (string, error) {
-	regex := getVersionRegex(prefix, baseRegex, suffix)
+func (g *GitRepository) GetLatestTag(prefix, baseRegex, suffix string) (string, error) {
+	regex := g.getVersionRegex(prefix, baseRegex, suffix)
 
 	cmd := fmt.Sprintf("git tag --sort=v:refname | grep -e %q | tail -1", regex)
 	out, err := terminal.Shell(cmd)
@@ -83,18 +80,12 @@ func GetLatestTag(prefix, baseRegex, suffix string) (string, error) {
 	return out, nil
 }
 
-func getVersionRegex(prefix, baseRegex, suffix string) string {
+func (g *GitRepository) getVersionRegex(prefix, baseRegex, suffix string) string {
 	return "^" + prefix + baseRegex + suffix + "$"
 }
 
-/*
-IsAlreadyTagged checks if the current commit has been tagged with the current version number
-Rules:
-	- if there is no tag for the commit then return false
-	- if the current commit has a different tag than the current version then return false
-*/
-func IsAlreadyTagged(ver string) bool {
-	tags, err := GetTagsHead()
+func (g *GitRepository) IsAlreadyTagged(ver string) bool {
+	tags, err := g.GetTagsHead()
 
 	re := regexp.MustCompile("^" + ver + "$")
 	result := re.FindAllString(tags, -1)
@@ -108,8 +99,7 @@ func IsAlreadyTagged(ver string) bool {
 	return isTagged
 }
 
-// GetTagsHead retrieves all the tags for the HEAD commit
-func GetTagsHead() (string, error) {
+func (g *GitRepository) GetTagsHead() (string, error) {
 	const commit = "HEAD"
 	out, err := terminal.Shell("git tag --points-at " + commit)
 	if err != nil {
@@ -122,8 +112,7 @@ func GetTagsHead() (string, error) {
 	return out, nil
 }
 
-// GetHash returns the git has for the HEAD commit
-func GetHash() (string, error) {
+func (g *GitRepository) GetHash() (string, error) {
 	const commit = "HEAD"
 	out, err := terminal.Shell("git rev-parse " + commit)
 	if err != nil {
@@ -136,8 +125,7 @@ func GetHash() (string, error) {
 	return out, nil
 }
 
-// GetLatestCommitLogs returns the latest n commit logs
-func GetLatestCommitLogs(count int) (string, error) {
+func (g *GitRepository) GetLatestCommitLogs(count int) (string, error) {
 	out, err := terminal.Shellf("git log %d", count)
 	if err != nil {
 		return "", fmt.Errorf("unable to retrieve the last %d commit logs: %v", count, err)
@@ -149,8 +137,7 @@ func GetLatestCommitLogs(count int) (string, error) {
 	return out, nil
 }
 
-// Fetch downloads the objects and refs from the remote
-func Fetch() error {
+func (g *GitRepository) Fetch() error {
 	_, err := terminal.Shell("git fetch --prune --prune-tags --tags")
 	if err != nil {
 		return fmt.Errorf("unable to sync with remote: %v", err)

@@ -17,7 +17,7 @@ type Tag struct {
 // SetMessage generates a message for the tag
 func (t *Tag) SetMessage() error {
 	var msg string
-	describe, err := DescribeLong()
+	describe, err := g.DescribeLong()
 	if err != nil {
 		return err
 	}
@@ -33,7 +33,7 @@ func (t *Tag) SetMessage() error {
 
 // Create the tag
 func (t *Tag) Create() error {
-	if isTagged := IsAlreadyTagged(t.Name); isTagged != false {
+	if isTagged := g.IsAlreadyTagged(t.Name); isTagged != false {
 		return fmt.Errorf("the current commit has already been tagged with tag %q", t.Name)
 	}
 
@@ -43,7 +43,7 @@ func (t *Tag) Create() error {
 		}
 	}
 
-	if err := TagCommit(t.Name, t.Message); err != nil {
+	if err := g.TagCommit(t.Name, t.Message); err != nil {
 		return err
 	}
 
@@ -55,7 +55,7 @@ func (t *Tag) Create() error {
 
 // Push the tag
 func (t *Tag) Push() error {
-	if err := Push(t.Name); err != nil {
+	if err := g.Push(t.Name); err != nil {
 		return err
 	}
 

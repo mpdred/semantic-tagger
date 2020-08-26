@@ -10,7 +10,6 @@ import (
 	"github.com/sirupsen/logrus"
 
 	"semtag/pkg/output"
-	"semtag/pkg/versionControl"
 )
 
 const (
@@ -55,12 +54,12 @@ func (v *Version) UseCustomVersion(prefix string, customVersion string, suffix s
 
 // SetVersionFromGit retrieves the latest version number based on existing git tags
 func (v *Version) SetVersionFromGit() error {
-	if err := versionControl.Fetch(); err != nil {
+	if err := GitRepo.Fetch(); err != nil {
 		return err
 	}
 
 	var latest string
-	tag, err := versionControl.GetLatestTag(v.Prefix, semanticTaggingRegex, v.Suffix)
+	tag, err := GitRepo.GetLatestTag(v.Prefix, semanticTaggingRegex, v.Suffix)
 	if err != nil {
 		latest = defaultVersion
 		output.Logger().WithFields(logrus.Fields{
@@ -78,7 +77,7 @@ func (v *Version) SetVersionFromGit() error {
 		return err
 	}
 
-	v.Hash, err = versionControl.GetHash()
+	v.Hash, err = GitRepo.GetHash()
 	if err != nil {
 		return err
 	}
@@ -220,7 +219,7 @@ SetScope calculates the version Scope that needs to be incremented:
 	- defaults to PATCH if no rule can be applied
 */
 func (v *Version) SetScope(scopeAsString string) error {
-	out, err := versionControl.GetLatestCommitLogs(-1)
+	out, err := GitRepo.GetLatestCommitLogs(-1)
 	if err != nil {
 		return err
 	}

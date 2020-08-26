@@ -5,9 +5,13 @@ import (
 	"reflect"
 	"strings"
 	"testing"
+
+	"semtag/pkg/versionControl"
 )
 
 func Test_Increment(t *testing.T) {
+	// arrange
+	GitRepo = &versionControl.GitRepositoryMock{}
 	tables := []struct {
 		ver   string
 		scope Scope
@@ -23,15 +27,20 @@ func Test_Increment(t *testing.T) {
 			t.Errorf("got %q want %q %s", got, want, changeType.String())
 		}
 	}
+
+	// act
 	for _, tb := range tables {
 		t.Run(fmt.Sprintf("ver=%q, scope=%s, want=%q", tb.ver, tb.scope.String(), tb.want), func(t *testing.T) {
 			ver := Version{}
+
 			if err := ver.load(tb.ver); err != nil {
 				t.Error(err)
 			}
 			if err := ver.Increment(tb.scope); err != nil {
 				t.Error(err)
 			}
+
+			// assert
 			got := ver.String()
 			assertCorrectMessage(t, got, tb.want, tb.scope)
 		})
@@ -39,6 +48,8 @@ func Test_Increment(t *testing.T) {
 }
 
 func Test_AsList(t *testing.T) {
+	// arrange
+	GitRepo = &versionControl.GitRepositoryMock{}
 	tables := []struct {
 		gitSha       string
 		expectedList []string
@@ -50,10 +61,13 @@ func Test_AsList(t *testing.T) {
 	if err := ver.load("0.2.1"); err != nil {
 		t.Error(err)
 	}
+
+	// act
 	for _, tb := range tables {
 		ver.Hash = tb.gitSha
 		actualList := ver.AsList()
 
+		// assert
 		// compare the two slices
 		expLen := len(tb.expectedList)
 		actLen := len(actualList)
@@ -67,6 +81,9 @@ func Test_AsList(t *testing.T) {
 }
 
 func Test_String(t *testing.T) {
+	// arrange
+	GitRepo = &versionControl.GitRepositoryMock{}
+
 	tables := []struct {
 		prefix string
 		suffix string
@@ -83,6 +100,8 @@ func Test_String(t *testing.T) {
 			t.Errorf("got %q want %q ", got, want)
 		}
 	}
+
+	// act
 	for _, tb := range tables {
 		t.Run(fmt.Sprintf("prefix=%q, suffix=%q, want=%q", tb.prefix, tb.suffix, tb.want), func(t *testing.T) {
 			vNumber := "0.1.0"
@@ -92,6 +111,8 @@ func Test_String(t *testing.T) {
 			if err := ver.load(vNumber); err != nil {
 				t.Error(err)
 			}
+
+			// assert
 			if tb.want != ver.String() {
 				t.Errorf("expected %q but found %q", tb.want, ver.String())
 			}
@@ -104,6 +125,8 @@ func Test_String(t *testing.T) {
 
 func Test_Load(t *testing.T) {
 	// arrange
+	GitRepo = &versionControl.GitRepositoryMock{}
+
 	tables := []struct {
 		raw string
 
@@ -135,6 +158,8 @@ func Test_Load(t *testing.T) {
 
 func Test_LoadNegative(t *testing.T) {
 	// arrange
+	GitRepo = &versionControl.GitRepositoryMock{}
+
 	tables := []struct {
 		raw string
 
@@ -171,6 +196,8 @@ func Test_LoadNegative(t *testing.T) {
 
 func Test_Validate(t *testing.T) {
 	// arrange
+	GitRepo = &versionControl.GitRepositoryMock{}
+
 	tables := []struct {
 		version string
 
@@ -199,7 +226,6 @@ func Test_Validate(t *testing.T) {
 
 			// assert
 			got := err != nil
-
 			assertCorrectVersion(t, got, tb.wantError)
 		})
 	}
@@ -207,6 +233,8 @@ func Test_Validate(t *testing.T) {
 
 func Test_Parse(t *testing.T) {
 	// arrange
+	GitRepo = &versionControl.GitRepositoryMock{}
+
 	tables := []struct {
 		version Version
 
@@ -242,6 +270,8 @@ func Test_Parse(t *testing.T) {
 
 func Test_SetScope(t *testing.T) {
 	// arrange
+	GitRepo = &versionControl.GitRepositoryMock{}
+
 	baseVer := Version{
 		Major: 1,
 		Minor: 2,
