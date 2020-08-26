@@ -1,7 +1,9 @@
 package version
 
 import (
+	"fmt"
 	"reflect"
+	"strings"
 	"testing"
 )
 
@@ -22,7 +24,7 @@ func Test_Increment(t *testing.T) {
 		}
 	}
 	for _, tb := range tables {
-		t.Run("Test Increment", func(t *testing.T) {
+		t.Run(fmt.Sprintf("ver=%q, scope=%s, want=%q", tb.ver, tb.scope.String(), tb.want), func(t *testing.T) {
 			ver := Version{}
 			if err := ver.load(tb.ver); err != nil {
 				t.Error(err)
@@ -66,24 +68,212 @@ func Test_AsList(t *testing.T) {
 
 func Test_String(t *testing.T) {
 	tables := []struct {
-		prefix         string
-		suffix         string
-		expectedOutput string
+		prefix string
+		suffix string
+
+		want string
 	}{
 		{"v", "", "v0.1.0"},
 		{"", "-api", "0.1.0-api"},
 		{"v", "-api", "v0.1.0-api"},
 	}
+	assertCorrectMessage := func(t *testing.T, got, want string) {
+		t.Helper()
+		if got != want {
+			t.Errorf("got %q want %q ", got, want)
+		}
+	}
 	for _, tb := range tables {
-		vNumber := "0.1.0"
-		ver := Version{}
-		ver.Prefix = tb.prefix
-		ver.Suffix = tb.suffix
-		if err := ver.load(vNumber); err != nil {
-			t.Error(err)
+		t.Run(fmt.Sprintf("prefix=%q, suffix=%q, want=%q", tb.prefix, tb.suffix, tb.want), func(t *testing.T) {
+			vNumber := "0.1.0"
+			ver := Version{}
+			ver.Prefix = tb.prefix
+			ver.Suffix = tb.suffix
+			if err := ver.load(vNumber); err != nil {
+				t.Error(err)
+			}
+			if tb.want != ver.String() {
+				t.Errorf("expected %q but found %q", tb.want, ver.String())
+			}
+
+			got := ver.String()
+			assertCorrectMessage(t, got, tb.want)
+		})
+	}
+}
+
+func Test_Load(t *testing.T) {
+	// arrange
+	tables := []struct {
+		raw string
+
+		want Version
+	}{
+		{"1.2.3", Version{Major: 1, Minor: 2, Patch: 3}},
+		{"11.2.3", Version{Major: 11, Minor: 2, Patch: 3}},
+		{"1.22.3", Version{Major: 1, Minor: 22, Patch: 3}},
+		{"1.2.33", Version{Major: 1, Minor: 2, Patch: 33}},
+	}
+	assertCorrectVersion := func(t *testing.T, got, want Version) {
+		t.Helper()
+		if got.String() != want.String() {
+			t.Errorf("got %q want %q ", got, want)
 		}
-		if tb.expectedOutput != ver.String() {
-			t.Errorf("expected %v but found %v", tb.expectedOutput, ver.String())
+	}
+
+	// act
+	for _, tb := range tables {
+		t.Run(fmt.Sprintf("raw=%q, want=%s", tb.raw, tb.want.String()), func(t *testing.T) {
+			v := Version{}
+			if err := v.load(tb.raw); err != nil {
+				t.Error(err)
+			}
+			assertCorrectVersion(t, v, tb.want)
+		})
+	}
+}
+
+func Test_LoadNegative(t *testing.T) {
+	// arrange
+	tables := []struct {
+		raw string
+
+		want string
+	}{
+		{"", ErrParseVersionMajor.Error()},
+		{"foo", ErrParseVersionMajor.Error()},
+		{"a.2.3", ErrParseVersionMajor.Error()},
+		{"1.b.3", ErrParseVersionMinor.Error()},
+		{"1.2.c", ErrParseVersionPatch.Error()},
+	}
+	assertCorrectVersion := func(t *testing.T, got, want string) {
+		t.Helper()
+		if !strings.Contains(got, want) {
+			t.Errorf("got %q want %q ", got, want)
 		}
+	}
+
+	// act
+	for _, tb := range tables {
+		t.Run(fmt.Sprintf("raw=%q, want=%q", tb.raw, tb.want), func(t *testing.T) {
+			v := Version{}
+
+			err := v.load(tb.raw)
+
+			// assert
+			if err == nil {
+				t.Error(err)
+			}
+			assertCorrectVersion(t, err.Error(), tb.want)
+		})
+	}
+}
+
+func Test_Validate(t *testing.T) {
+	// arrange
+	tables := []struct {
+		version string
+
+		wantError bool
+	}{
+		{"1.2.3", false},
+		{"foo", true},
+		{"1-2.3", true},
+		{"1..2.3", true},
+		{"v1.2.3", true},
+		{"1.2.3-api", true},
+	}
+	assertCorrectVersion := func(t *testing.T, got, want bool) {
+		t.Helper()
+		if got != want {
+			t.Errorf("got %t want %t ", got, want)
+		}
+	}
+
+	// act
+	for _, tb := range tables {
+		t.Run(fmt.Sprintf("raw=%q, wantError=%t", tb.version, tb.wantError), func(t *testing.T) {
+			v := Version{}
+
+			err := v.Validate(tb.version)
+
+			// assert
+			got := err != nil
+
+			assertCorrectVersion(t, got, tb.wantError)
+		})
+	}
+}
+
+func Test_Parse(t *testing.T) {
+	// arrange
+	tables := []struct {
+		version Version
+
+		wantError bool
+	}{
+		{Version{Major: 1, Minor: 2, Patch: 3}, false},
+		{Version{Major: 1, Minor: 2, Patch: 3, Suffix: "-api"}, false},
+		{Version{Prefix: "v", Major: 1, Minor: 2, Patch: 3}, false},
+	}
+	assertCorrectVersion := func(t *testing.T, got, want bool) {
+		t.Helper()
+		if got != want {
+			t.Errorf("got %t want %t ", got, want)
+		}
+	}
+
+	// act
+	for _, tb := range tables {
+		t.Run(fmt.Sprintf("raw=%q, wantError=%t", tb.version.String(), tb.wantError), func(t *testing.T) {
+			v := Version{
+				Prefix: tb.version.Prefix,
+				Suffix: tb.version.Suffix,
+			}
+
+			err := v.Parse(tb.version.String())
+
+			// assert
+			got := err != nil
+			assertCorrectVersion(t, got, tb.wantError)
+		})
+	}
+}
+
+func Test_SetScope(t *testing.T) {
+	// arrange
+	baseVer := Version{
+		Major: 1,
+		Minor: 2,
+		Patch: 3,
+	}
+	tables := []struct {
+		scope string
+
+		want Version
+	}{
+		{"major", Version{Major: 2, Minor: 0, Patch: 0}},
+		{"minor", Version{Major: 1, Minor: 3, Patch: 0}},
+		{"foo", Version{Major: 1, Minor: 2, Patch: 4}},
+	}
+
+	// act
+	for _, tb := range tables {
+		t.Run(fmt.Sprintf("version=%q, scope=%q, want=%q", baseVer.String(), tb.scope, tb.want.String()), func(t *testing.T) {
+
+			ver := baseVer
+			if err := ver.SetScope(tb.scope); err != nil {
+				t.Error(err)
+			}
+
+			// assert
+			assertCorrectVersion := func(t *testing.T, got, want string) {
+				t.Helper()
+				if got != want {
+					t.Errorf("got %q want %q ", got, want)
+				}
+			}
+			assertCorrectVersion(t, ver.String(), tb.want.String())
+		})
 	}
 }
