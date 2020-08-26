@@ -4,6 +4,8 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/sirupsen/logrus"
+
 	"semtag/internal"
 	"semtag/pkg/changelog"
 	"semtag/pkg/output"
@@ -38,7 +40,7 @@ func main() {
 	}
 
 	if args.ShouldTagGit {
-		hasRelevantChanges, err := internal.HasRelevantChanges(args.RelevantPaths)
+		hasRelevantChanges, err := versionControl.HasRelevantChanges(args.RelevantPaths)
 		if err != nil {
 			output.Logger().Fatal(err)
 		}
@@ -47,7 +49,7 @@ func main() {
 			tag := &versionControl.Tag{
 				Name: v.String(),
 			}
-			if err := internal.TagGit(tag, args.Push); err != nil {
+			if err := TagGit(tag, args.Push); err != nil {
 				output.Logger().Fatal(err)
 			}
 			if !args.Push {
@@ -58,7 +60,7 @@ func main() {
 
 	shouldTagInFile := len(args.FileName) > 0 && len(args.FileVersionPattern) > 0
 	if shouldTagInFile {
-		if err := internal.TagFile(v, args.FileName, args.FileVersionPattern, args.Push); err != nil {
+		if err := TagFile(v, args.FileName, args.FileVersionPattern, args.Push); err != nil {
 			output.Logger().Fatal(err)
 		}
 		if !args.Push {
@@ -106,4 +108,56 @@ func setVersion(args internal.CliArgs) version.Version {
 		}
 	}
 	return v
+}
+
+// TagGit creates and pushes a git tag
+func TagGit(tag *versionControl.Tag, pushChanges bool) error {
+	if pushChanges {
+		if err := tag.Create(); err != nil {
+			return err
+		}
+		if err := tag.Push(); err != nil {
+			return err
+		}
+	}
+	output.Logger().WithFields(logrus.Fields{
+		"tag":       tag.Name,
+		"tagPushed": pushChanges,
+	}).Info("the git commit has been tagged")
+	return nil
+}
+
+// TagFile updates a substring in a file based on a pattern
+func TagFile(ver version.Version, filePath string, versionPattern string, pushChanges bool) error {
+	const commitMsgVerBump = "chore(version): "
+
+	f := version.File{
+		Path:          filePath,
+		VersionFormat: versionPattern,
+		Version:       ver.String(),
+	}
+	newContents, err := f.ReplaceSubstring()
+	if err != nil {
+		return err
+	}
+
+	if err := f.Write(newContents); err != nil {
+		return err
+	}
+	if err := versionControl.Add(filePath); err != nil {
+		return err
+	}
+	if pushChanges {
+		if err := versionControl.Commit(commitMsgVerBump + ver.String()); err != nil {
+			return err
+		}
+		if err := versionControl.Push(""); err != nil {
+			return err
+		}
+	}
+	output.Logger().WithFields(logrus.Fields{
+		"file":              f.Path,
+		"fileChangesPushed": pushChanges,
+	}).Info("the file has been updated")
+	return nil
 }

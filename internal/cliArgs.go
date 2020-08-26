@@ -10,11 +10,10 @@ import (
 	"semtag/pkg/changelog"
 	"semtag/pkg/output"
 	"semtag/pkg/version"
+	"semtag/pkg/versionControl"
 )
 
 const (
-	DefaultRelevantPath = "."
-
 	binaryName = "semtag"
 
 	flagPrefix    = "prefix"
@@ -45,7 +44,7 @@ type CliArgs struct {
 	CustomVersion string
 	VersionScope  version.Scope
 
-	RelevantPaths relevantPaths
+	RelevantPaths versionControl.RelevantPaths
 
 	Push           bool
 	ShouldTagGit   bool
@@ -70,7 +69,7 @@ func (a *CliArgs) parseAndInit() {
 	flag.Parse()
 
 	if len(a.RelevantPaths) == 0 {
-		a.RelevantPaths = relevantPaths{DefaultRelevantPath}
+		a.RelevantPaths = versionControl.RelevantPaths{versionControl.DefaultRelevantPath}
 	}
 	if err := a.VersionScope.Parse(tempVersionScope); err != nil {
 		output.Logger().Fatal(err)

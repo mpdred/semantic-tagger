@@ -7,7 +7,8 @@ import (
 	"regexp"
 	"strings"
 
-	"semtag/pkg"
+	"github.com/sirupsen/logrus"
+
 	"semtag/pkg/output"
 )
 
@@ -19,32 +20,51 @@ type File struct {
 	Version       string
 }
 
-func (f *File) Read() *[]byte {
+// Read data from file
+func (f *File) Read() ([]byte, error) {
 	dat, err := ioutil.ReadFile(f.Path)
 	if err != nil {
-		output.Logger().Fatal(err)
+		return []byte{}, fmt.Errorf("failed to read file %q: %v", f.Path, err)
 	}
-	return &dat
+	output.Logger().WithFields(logrus.Fields{
+		"filePath": f.Path,
+	}).Debug("read from file successfully")
+	return dat, nil
 }
 
-func (f *File) Write(data *string) {
-	newContents := []byte(*data)
+// Write data to file
+func (f *File) Write(data string) error {
+	newContents := []byte(data)
 	err := ioutil.WriteFile(f.Path, newContents, 0)
 	if err != nil {
-		output.Logger().Fatal(err)
+		return fmt.Errorf("failed to write data=%q to file=%q: %v", data, f.Path, err)
 	}
+	output.Logger().WithFields(logrus.Fields{
+		"filePath": f.Path,
+		"fileData": data,
+	}).Debug("write to file successfully")
+	return nil
 }
 
-func (f *File) ReplaceSubstring() *string {
+// ReplaceSubstring in file
+func (f *File) ReplaceSubstring() (string, error) {
 	toFind := strings.Replace(f.VersionFormat, "%s", ".*", 1)
 	re := regexp.MustCompile(fmt.Sprintf("%s", toFind))
-	dat := string(*f.Read())
-	match := re.FindStringSubmatch(dat)
+	dat, err := f.Read()
+	if err != nil {
+		return "", err
+	}
+	match := re.FindStringSubmatch(string(dat))
 	if len(match) != 1 {
-		output.Logger().Fatal(pkg.NewErrorDetails(ErrNoMatchFoundVersionFormat, "file: "+f.Path, "; version format: "+f.VersionFormat))
+		return "", fmt.Errorf("%v: file=%q, versionFormat=%q", ErrNoMatchFoundVersionFormat, f.Path, f.VersionFormat)
 	}
 
 	newVersionLine := fmt.Sprintf(f.VersionFormat, f.Version)
-	newContents := strings.Replace(dat, match[0], newVersionLine, -1)
-	return &newContents
+	newContents := strings.Replace(string(dat), match[0], newVersionLine, -1)
+
+	output.Logger().WithFields(logrus.Fields{
+		"filePath":           f.Path,
+		"fileNewVersionLine": newVersionLine,
+	}).Info("string replaced in file")
+	return newContents, nil
 }
