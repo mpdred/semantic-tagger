@@ -70,16 +70,6 @@ changelog: ## create the repository changelog
 	GIT_TAG_URL="https://github.com/mpdred/semantic-tagger/releases/tag/" \
 	bin/semtag -changelog -prefix=v -changelog-regex="^v[0-9]+\.[0-9]+\.[0-9]+$$"
 
-upload_to_S3: .aws build ## upload to S3
-	@set -euo pipefail
-	@echo -e "\n\tDEPRECATED: upload binaries to S3"
-	cp -v bin/semtag bin/semtag-$$(git describe --tags `git rev-list --tags --max-count=1` | cut -d '.' -f1)
-	aws s3 sync bin/semtag s3://mpdred-public
-
-.aws: ## ensure AWS cli exists
-	@set -euo pipefail
-	@aws --version | grep 'aws-cli/2'|| { echo "FATAL: AWS cli v2 not found" ; exit 1 ; }
-
 
 .PHONY: clean
 clean: # deletes all temporary files
