@@ -47,7 +47,7 @@ set -euo pipefail
 previous_tag=0
 
 # for each of the tags that match the provided regex create a changelog entry
-for current_tag in $(git tag --sort=-creatordate | grep -E %q ); do
+for current_tag in $(git tag --sort=-v:refname | grep -E %s ); do
 
   if [ "$previous_tag" != 0 ]; then
 	# get the commit datetime
