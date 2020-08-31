@@ -14,7 +14,7 @@ import (
 
 const (
 	defaultVersion       = "0.1.0"
-	semanticTaggingRegex = `[0-9]*\.[0-9]*\.[0-9]*`
+	semanticTaggingRegex = `[0-9]+\.[0-9]+\.[0-9]+`
 )
 
 var (
@@ -268,6 +268,8 @@ func (v *Version) Increment(s Scope) error {
 		v.Patch = 0
 	case PATCH:
 		v.Patch += 1
+	case NONE:
+		v.Patch += 0
 	default:
 		return errors.New(fmt.Sprintf("%v: %s", ErrIncrementVersion, s.String()))
 	}

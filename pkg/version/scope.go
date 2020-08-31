@@ -20,13 +20,13 @@ const (
 	MAJOR
 	MINOR
 	PATCH
+	NONE
 )
 
 // Parse a string that contains a scope and set the Scope's id
 func (s *Scope) Parse(scopeToParse string) error {
 	scopeToParse = strings.ToLower(scopeToParse)
 	switch scopeToParse {
-	case "":
 	case "auto":
 		s.Id = AUTO
 	case "major":
@@ -35,8 +35,11 @@ func (s *Scope) Parse(scopeToParse string) error {
 		s.Id = MINOR
 	case "patch":
 		s.Id = PATCH
+	case "none":
+	case "":
+		s.Id = NONE
 	default:
-		return errors.New(fmt.Sprintf("%v: %s", ErrParseScopeName, scopeToParse))
+		return fmt.Errorf("%v: %s", ErrParseScopeName, scopeToParse)
 	}
 	return nil
 }
@@ -51,7 +54,9 @@ func (s *Scope) String() string {
 		return "patch"
 	case AUTO:
 		return "auto"
+	case NONE:
 	default:
-		return "auto"
+		return "none"
 	}
+	return "none"
 }

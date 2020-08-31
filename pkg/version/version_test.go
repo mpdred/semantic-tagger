@@ -20,6 +20,7 @@ func Test_Increment(t *testing.T) {
 		{"1.2.3", Scope{MAJOR}, "2.0.0"},
 		{"1.2.3", Scope{MINOR}, "1.3.0"},
 		{"1.2.3", Scope{PATCH}, "1.2.4"},
+		{"1.2.3", Scope{NONE}, "1.2.3"},
 	}
 	assertCorrectMessage := func(t *testing.T, got, want string, changeType Scope) {
 		t.Helper()

@@ -103,7 +103,7 @@ func setVersion(args internal.CliArgs) version.Version {
 		}
 	}
 
-	shouldIncrementVersion := args.VersionScope.String() != ""
+	shouldIncrementVersion := args.VersionScope.String() != "none"
 	if shouldIncrementVersion {
 		if err := v.SetScope(args.VersionScope.String()); err != nil {
 			output.Logger().Fatal(err)
