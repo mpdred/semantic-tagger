@@ -74,7 +74,7 @@ func (g *GitRepository) GetLatestTag(prefix, baseRegex, suffix string) (string, 
 
 	cmd := fmt.Sprintf("git tag --sort=v:refname | grep -e %q | tail -1", regex)
 	out, err := terminal.Shell(cmd)
-	if err != nil {
+	if err != nil || out == "" {
 		return "", fmt.Errorf("unable to get the latest tag: %v", err)
 	}
 	return out, nil
