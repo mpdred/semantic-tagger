@@ -68,7 +68,7 @@ changelog: ## create the repository changelog
 	@echo -e "\n\tcreate the change log"
 	GIT_COMMIT_URL="https://github.com/mpdred/semantic-tagger/commit/" \
 	GIT_TAG_URL="https://github.com/mpdred/semantic-tagger/releases/tag/" \
-	bin/semtag -changelog -prefix=v -changelog-regex="^v[0-9]+\.[0-9]+\.[0-9]+$$"
+	bin/semtag -changelog -prefix=v
 
 
 .PHONY: clean
