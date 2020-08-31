@@ -23,6 +23,7 @@ func initLogger() {
 		return
 	}
 	log = logrus.New()
+
 	log.Formatter = &logrus.TextFormatter{
 		ForceQuote:             true,
 		DisableQuote:           false,
@@ -42,7 +43,7 @@ func initLogger() {
 	Logger().WithFields(logrus.Fields{
 		"logLevel":        log.Level.String(),
 		"logReportCaller": log.ReportCaller,
-	}).Info("logger initialized")
+	}).Debug("logger initialized")
 
 	log.Level = logLevel
 }
@@ -65,7 +66,7 @@ func getLogLevel() logrus.Level {
 	out := os.Getenv(envVarDebug)
 	logLevel := strings.ToLower(out)
 
-	Logger().WithField("logLevelFromUser", logLevel).Info("read log level")
+	Logger().WithField("logLevelFromUser", logLevel).Debug("read log level")
 
 	switch logLevel {
 	case "trace":
