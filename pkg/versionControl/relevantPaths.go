@@ -10,7 +10,7 @@ import (
 )
 
 const (
-	DefaultRelevantPath = "."
+	DefaultRelevantPath = ""
 )
 
 var g VersionControl = &GitRepository{}

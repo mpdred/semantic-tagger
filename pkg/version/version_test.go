@@ -292,7 +292,7 @@ func Test_SetScope(t *testing.T) {
 		t.Run(fmt.Sprintf("version=%q, scope=%q, want=%q", baseVer.String(), tb.scope, tb.want.String()), func(t *testing.T) {
 
 			ver := baseVer
-			if err := ver.SetScope(tb.scope); err != nil {
+			if err := ver.SetIncrementScope(tb.scope); err != nil {
 				t.Error(err)
 			}
 

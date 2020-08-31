@@ -8,7 +8,6 @@ import (
 
 var (
 	ErrParseScopeName = errors.New("scope name can't be parsed")
-	ErrParseScopeId   = errors.New("scope id can't be parsed")
 )
 
 type Scope struct {
@@ -55,7 +54,6 @@ func (s *Scope) String() string {
 	case AUTO:
 		return "auto"
 	case NONE:
-	default:
 		return "none"
 	}
 	return "none"

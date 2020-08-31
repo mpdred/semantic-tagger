@@ -213,18 +213,27 @@ func (v *Version) appendPrefix(list []string) []string {
 }
 
 /*
-SetScope calculates the version Scope that needs to be incremented:
+SetIncrementScope calculates the version Scope that needs to be incremented:
 	- if the user-provided scope if set to MAJOR or MINOR, then use that scope
 	- if the user-provided scope is AUTO, try to determine the scope by parsing the commit messages
 	- defaults to PATCH if no rule can be applied
 */
-func (v *Version) SetScope(scopeAsString string) error {
+func (v *Version) SetIncrementScope(scopeAsString string) error {
+	s := Scope{NONE}
+	if scopeAsString == s.String() || scopeAsString == "" {
+		output.Logger().WithFields(logrus.Fields{
+			"scopeFromUserInput": scopeAsString,
+			"scope":              s.String(),
+		}).Info("skip setting version scope: no increment is required")
+		return nil
+	}
+
 	out, err := GitRepo.GetLatestCommitLogs(-1)
 	if err != nil {
 		return err
 	}
 
-	s := Scope{PATCH}
+	s.Id = PATCH
 	if strings.ToLower(scopeAsString) == "major" ||
 		(strings.ToLower(scopeAsString) == "auto" &&
 			strings.Contains(out, "BREAKING CHANGE")) {

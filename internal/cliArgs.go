@@ -9,7 +9,6 @@ import (
 
 	"semtag/pkg/changelog"
 	"semtag/pkg/output"
-	"semtag/pkg/version"
 	"semtag/pkg/versionControl"
 )
 
@@ -39,10 +38,10 @@ var (
 )
 
 type CliArgs struct {
-	Prefix        string
-	Suffix        string
-	CustomVersion string
-	VersionScope  version.Scope
+	Prefix               string
+	Suffix               string
+	CustomVersion        string
+	VersionScopeAsString string
 
 	RelevantPaths versionControl.RelevantPaths
 
@@ -57,8 +56,6 @@ type CliArgs struct {
 	FileVersionPattern string
 }
 
-var tempVersionScope string
-
 func (args *CliArgs) ParseFlags() {
 	args.loadAllFlags()
 	args.parseAndInit()
@@ -70,9 +67,6 @@ func (args *CliArgs) parseAndInit() {
 
 	if len(args.RelevantPaths) == 0 {
 		args.RelevantPaths = versionControl.RelevantPaths{versionControl.DefaultRelevantPath}
-	}
-	if err := args.VersionScope.Parse(tempVersionScope); err != nil {
-		output.Logger().Fatal(err)
 	}
 
 	output.Logger().WithField("args", fmt.Sprintf("%#v", args)).Info("arguments parsed")
@@ -198,14 +192,11 @@ func (args *CliArgs) loadGenericVersionFlags() {
 		"",
 		`if set, use the provided version`)
 
-	var versionScope string
 	flag.StringVar(
-		&versionScope,
+		&args.VersionScopeAsString,
 		flagIncrement,
 		"",
-		"if set, increment the version scope: [ auto | major | minor | patch ]")
-	tempVersionScope = versionScope
-
+		"if set, increment the version scope: [ none | auto | major | minor | patch ]")
 }
 
 func (args *CliArgs) guardAgainstInvalidArgs() {
