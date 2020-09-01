@@ -102,7 +102,7 @@ func (v *Version) Validate(version string) error {
 	return errors.New(fmt.Sprintf("%v: version=%q, expected regex=%q", ErrParseVersion, version, expectedRegex))
 }
 
-func (v *Version) String() string {
+func (v Version) String() string {
 	s := fmt.Sprintf("%d.%d.%d", v.Major, v.Minor, v.Patch)
 	s = v.appendPrefix([]string{s})[0]
 	s = v.appendSuffix([]string{s})[0]

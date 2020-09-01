@@ -17,7 +17,7 @@ var g VersionControl = &GitRepository{}
 
 type RelevantPaths []string
 
-func (i *RelevantPaths) String() string {
+func (i RelevantPaths) String() string {
 	return DefaultRelevantPath
 }
 

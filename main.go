@@ -26,6 +26,9 @@ func main() {
 
 	v := setVersion(args)
 
+	// print the version to stdout; execute as the last command so that it can be grepped by simple shell scripts
+	defer fmt.Print(v.String())
+
 	if args.Push {
 		if err := versionControl.TrySetGitCredentialsBasicAuth(); err != nil {
 			output.Logger().Debug(err)
@@ -83,8 +86,6 @@ func main() {
 		}
 	}
 
-	// print the version to stdout; execute as the last command so that it can be grepped by simple shell scripts
-	fmt.Print(v.String())
 }
 
 func setVersion(args internal.CliArgs) version.Version {

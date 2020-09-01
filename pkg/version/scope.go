@@ -43,7 +43,7 @@ func (s *Scope) Parse(scopeToParse string) error {
 	return nil
 }
 
-func (s *Scope) String() string {
+func (s Scope) String() string {
 	switch s.Id {
 	case MAJOR:
 		return "major"
