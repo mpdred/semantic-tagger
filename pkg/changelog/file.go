@@ -60,7 +60,8 @@ for current_tag in $(git tag --sort=-v:refname | grep -E %s ); do
 	# set the changelog entry body
 	# use the commit url to generate the hyperlinks for commits
 	# ignore merge commits
-    TZ=UTC git log ${current_tag}...${previous_tag} --pretty=format:'*  %%s by [%%aN](mailto:%%aE) ([%%h](%s/%%H))' --reverse | grep -v Merge
+    TZ=UTC git log ${current_tag}...${previous_tag} --pretty=format:'*  %%s by [%%aN](mailto:%%aE) ([%%h](%s/%%H))' --reverse | grep Merge \
+		|| TZ=UTC git log ${current_tag}...${previous_tag} --pretty=format:'*  %%s by [%%aN](mailto:%%aE) ([%%h](%s/%%H))' --reverse
 
     printf "\n\n"
   fi
