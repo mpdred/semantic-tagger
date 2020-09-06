@@ -69,7 +69,7 @@ for current_tag in $(git tag --sort=-v:refname | grep -E %s ); do
   previous_tag=${current_tag}
 done
 EOF`,
-		fileName, regex, tagUrl, commitUrl)
+		fileName, regex, tagUrl, commitUrl, commitUrl)
 	_, err := terminal.Shell(script)
 	if err != nil {
 		return err

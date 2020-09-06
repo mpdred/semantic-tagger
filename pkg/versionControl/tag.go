@@ -33,7 +33,7 @@ func (t *Tag) SetMessage() error {
 
 // Create the tag
 func (t *Tag) Create() error {
-	if isTagged := g.IsAlreadyTagged(t.Name); isTagged != false {
+	if isTagged := g.IsAlreadyTagged(t.Name); isTagged == true {
 		return fmt.Errorf("the current commit has already been tagged with tag %q", t.Name)
 	}
 

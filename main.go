@@ -27,7 +27,8 @@ func main() {
 	v := setVersion(args)
 
 	// print the version to stdout; execute as the last command so that it can be grepped by simple shell scripts
-	defer fmt.Print(v.String())
+	versionNumber := v.RemovePrefixAndSuffix(v.String())
+	defer fmt.Print(versionNumber)
 
 	if args.Push {
 		if err := versionControl.TrySetGitCredentialsBasicAuth(); err != nil {

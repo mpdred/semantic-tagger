@@ -111,7 +111,7 @@ func (v Version) String() string {
 
 // Parse the version without a prefix and/or suffix
 func (v *Version) Parse(version string) error {
-	newV := v.removePrefixAndSuffix(version)
+	newV := v.RemovePrefixAndSuffix(version)
 
 	if err := v.Validate(newV); err != nil {
 		return err
@@ -128,8 +128,8 @@ func (v *Version) Parse(version string) error {
 	return nil
 }
 
-// removePrefixAndSuffix from the version string to get only the version number
-func (v *Version) removePrefixAndSuffix(version string) string {
+// RemovePrefixAndSuffix from the version string to get only the version number
+func (v *Version) RemovePrefixAndSuffix(version string) string {
 	cleanVersion := version
 	if v.Prefix != "" {
 		cleanVersion = strings.Replace(cleanVersion, v.Prefix, "", 1)
