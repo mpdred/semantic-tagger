@@ -39,9 +39,11 @@ RUN apk add --no-cache \
       bash git openssh-client ca-certificates
 
 
-COPY --from=build /app/bin/semtag /usr/local/bin
+COPY --from=build /app/bin/semtag-linux-amd64 /usr/local/bin/semtag-linux-amd64
+COPY --from=build /app/bin/semtag-linux-386 /usr/local/bin/semtag-linux-386
 COPY --from=test /app/README.md ./
-RUN chmod +x /usr/local/bin/semtag
+RUN chmod +x /usr/local/bin/semtag*
+RUN ln -s /usr/local/bin/semtag-linux-386 /usr/local/bin/semtag
 
 LABEL description="Set up versioning by using git tags or files"
 LABEL documentation="https://github.com/mpdred/semantic-tagger/blob/master/README.md"
