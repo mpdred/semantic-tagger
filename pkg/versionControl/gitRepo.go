@@ -138,7 +138,7 @@ func (g *GitRepository) GetLatestCommitLogs(count int) (string, error) {
 }
 
 func (g *GitRepository) Fetch() error {
-	_, err := terminal.Shell("git fetch --prune --prune-tags --tags")
+	_, err := terminal.Shell("git fetch --prune --prune-tags --tags &> /dev/null ")
 	if err != nil {
 		return fmt.Errorf("unable to sync with remote: %v", err)
 	}
