@@ -32,11 +32,10 @@ RUN make build-linux
 
 
 # ---
-FROM alpine AS final
+FROM debian:stable-slim AS final
 
 WORKDIR /app
-RUN apk add --no-cache \
-      bash git openssh-client ca-certificates
+RUN apt update && apt install -y bash git openssh-client ca-certificates
 
 
 COPY --from=build /app/bin/semtag-linux-amd64 /usr/local/bin/semtag-linux-amd64
