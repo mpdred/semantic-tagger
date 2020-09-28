@@ -15,7 +15,7 @@ import (
 )
 
 var (
-	ErrNotPushMode = errors.New("push to Git skipped: use the `-push` flag to push changes")
+	ErrNotPushMode = errors.New("push to git skipped: use the `-push` flag to push changes")
 )
 
 var GitRepo versionControl.VersionControl = &versionControl.GitRepository{}
