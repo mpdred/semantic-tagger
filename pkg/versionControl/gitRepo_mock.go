@@ -1,5 +1,9 @@
 package versionControl
 
+import (
+	"errors"
+)
+
 type GitRepositoryMock struct {
 }
 
@@ -24,7 +28,7 @@ func (g *GitRepositoryMock) DescribeLong() (string, error) {
 }
 
 func (g *GitRepositoryMock) GetLatestTag(prefix, baseRegex, suffix string) (string, error) {
-	return "", nil
+	return "", errors.New("")
 }
 
 func (g *GitRepositoryMock) getVersionRegex(prefix, baseRegex, suffix string) string {

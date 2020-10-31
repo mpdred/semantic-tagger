@@ -55,6 +55,7 @@ func (v *Version) UseCustomVersion(prefix string, customVersion string, suffix s
 // SetVersionFromGit retrieves the latest version number based on existing git tags
 func (v *Version) SetVersionFromGit() error {
 	var latest string
+
 	tag, err := GitRepo.GetLatestTag(v.Prefix, semanticTaggingRegex, v.Suffix)
 	if err != nil {
 		latest = defaultVersion
@@ -95,7 +96,8 @@ func (v *Version) Validate(version string) error {
 		}).Debug("the version format is valid")
 		return nil
 	}
-	return errors.New(fmt.Sprintf("%v: version=%q, expected regex=%q", ErrParseVersion, version, expectedRegex))
+	return errors.New(fmt.Sprintf("%v: version=%q, expected regex=%q",
+		ErrParseVersion, version, expectedRegex))
 }
 
 func (v Version) String() string {

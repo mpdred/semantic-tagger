@@ -307,3 +307,170 @@ func Test_SetScope(t *testing.T) {
 		})
 	}
 }
+
+func Test_RemovePrefixAndSuffix(t *testing.T) {
+	// arrange
+	tables := []struct {
+		v    Version
+		want string
+	}{
+		{Version{
+			Prefix: "foo",
+			Major:  1,
+			Minor:  2,
+			Patch:  3,
+			Suffix: "",
+			Hash:   "",
+			Scope:  Scope{},
+		}, "1.2.3"},
+		{Version{
+			Prefix: "",
+			Major:  1,
+			Minor:  2,
+			Patch:  3,
+			Suffix: "bar",
+			Hash:   "",
+			Scope:  Scope{},
+		}, "1.2.3"},
+		{Version{
+			Prefix: "foo-",
+			Major:  1,
+			Minor:  2,
+			Patch:  3,
+			Suffix: "-bar",
+			Hash:   "",
+			Scope:  Scope{},
+		}, "1.2.3"},
+		{Version{}, "0.0.0"},
+	}
+
+	// act
+	for _, tb := range tables {
+		t.Run(fmt.Sprintf("version=%q, want=%q", tb.v.String(), tb.want), func(t *testing.T) {
+
+			ver := tb.v
+			got := ver.RemovePrefixAndSuffix(ver.String())
+
+			// assert
+			assertCorrectVersion := func(t *testing.T, got, want string) {
+				t.Helper()
+				if got != want {
+					t.Errorf("got %q want %q ", got, want)
+				}
+			}
+
+			// assert
+			assertCorrectVersion(t, got, tb.want)
+		})
+	}
+}
+
+func Test_UseCustomVersion(t *testing.T) {
+	// arrange
+	tables := []struct {
+		prefix        string
+		customVersion string
+		suffix        string
+
+		want Version
+	}{
+		{"", "1.2.3", "", Version{
+			Major: 1,
+			Minor: 2,
+			Patch: 3}},
+		{"foo-", "1.2.3", "", Version{
+			Prefix: "foo-",
+			Major:  1,
+			Minor:  2,
+			Patch:  3},
+		},
+		{"", "1.2.3", "-bar", Version{
+			Major:  1,
+			Minor:  2,
+			Patch:  3,
+			Suffix: "-bar"},
+		},
+	}
+
+	// act
+	for _, tb := range tables {
+		t.Run(fmt.Sprintf("tables=%v", tb), func(t *testing.T) {
+
+			ver := Version{}
+			if err := ver.UseCustomVersion(tb.prefix, tb.customVersion, tb.suffix); err != nil {
+				t.Error(err)
+			}
+
+			// assert
+			assertCorrectVersion := func(t *testing.T, got, want Version) {
+				t.Helper()
+				if got != want {
+					t.Errorf("got %q want %q ", got, want)
+				}
+			}
+
+			// assert
+			assertCorrectVersion(t, ver, tb.want)
+		})
+	}
+}
+
+func Test_UseCustomVersion_Errors(t *testing.T) {
+	// arrange
+	tables := []struct {
+		prefix        string
+		customVersion string
+		suffix        string
+
+		wantError bool
+	}{
+		{"", "baz", "-bar", true},
+		{"foo-", "baz", "", true},
+		{"foo-", "baz", "-bar", true},
+		{"", "1.2.3", "", false},
+	}
+
+	// act
+	for _, tb := range tables {
+		t.Run(fmt.Sprintf("tables=%v", tb), func(t *testing.T) {
+
+			ver := Version{}
+			err := ver.UseCustomVersion(tb.prefix, tb.customVersion, tb.suffix)
+
+			// assert
+			assertCorrectVersion := func(t *testing.T, got, want bool) {
+				t.Helper()
+				if got != want {
+					t.Errorf("got %v want %v ", got, want)
+				}
+			}
+
+			// assert
+			got := err != nil
+			assertCorrectVersion(t, got, tb.wantError)
+		})
+	}
+}
+
+func Test_SetVersionFromGit_DefaultVersion(t *testing.T) {
+	// arrange
+	GitRepo = &versionControl.GitRepositoryMock{}
+
+	// act
+	t.Run(fmt.Sprintf(`tag=""`), func(t *testing.T) {
+
+		ver := Version{}
+		if err := ver.SetVersionFromGit(); err != nil {
+			t.Error(err)
+		}
+
+		// assert
+		assertCorrectVersion := func(t *testing.T, got, want string) {
+			t.Helper()
+			if got != want {
+				t.Errorf("got %v want %v ", got, want)
+			}
+		}
+		assertCorrectVersion(t, ver.String(), defaultVersion)
+	})
+}
