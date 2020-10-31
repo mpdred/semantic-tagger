@@ -9,7 +9,6 @@ CHANGELOG_NAME = CHANGELOG.md
 .PHONY: help
 help: ## show this help
 	@echo -e '\nUsage: make [target] ...\n'
-	# echo -e "TARGET: DEPENDENCIES ## DESCRIPTION \n`egrep '^[0-9a-zA-Z](.*)+:.*?## ' $(MAKEFILE_LIST)`" | awk 'NR ==1 {print $0} ; NR > 1 {print $0 | "sort"}' | column -t -c 2 -s ':#'
 	echo -e "TARGET: DEPENDENCIES ## DESCRIPTION \n`egrep '^[0-9a-zA-Z_-]+:.*?## ' $(MAKEFILE_LIST)`" | awk 'NR ==1 {print $0} ; NR > 1 {print $0 | "sort"}' | column -t -c 2 -s ':#'
 
 dependencies: ## download the module dependencies
