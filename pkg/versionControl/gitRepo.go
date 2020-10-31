@@ -70,6 +70,10 @@ func (g *GitRepository) DescribeLong() (string, error) {
 }
 
 func (g *GitRepository) GetLatestTag(prefix, baseRegex, suffix string) (string, error) {
+	if err := g.Fetch(); err != nil {
+		return "", err
+	}
+
 	regex := g.getVersionRegex(prefix, baseRegex, suffix)
 
 	cmd := fmt.Sprintf("git tag --sort=v:refname | grep -E %s | tail -1", regex)
