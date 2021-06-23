@@ -1,6 +1,9 @@
 package versionControl
 
 type VersionControl interface {
+	// Open a git repository from the given path
+	Open(path string) error
+
 	// Commit the current changes
 	Commit(msg string) error
 

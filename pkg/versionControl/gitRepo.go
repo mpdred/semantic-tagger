@@ -5,13 +5,45 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/go-git/go-git/v5/plumbing"
+	"github.com/go-git/go-git/v5/plumbing/object"
 	"github.com/sirupsen/logrus"
+
+	"github.com/go-git/go-git/v5"
 
 	"semtag/pkg/output"
 	"semtag/pkg/terminal"
 )
 
 type GitRepository struct {
+}
+
+var repository *git.Repository
+
+func (g *GitRepository) Open(path string) error {
+	r, err := git.PlainOpen(path)
+	output.Logger().WithField("path", path).Info("open git repo")
+	if err != nil {
+		return err
+	}
+	repository = r
+	return nil
+}
+
+func (g *GitRepository) Fetch() error {
+	opts := &git.FetchOptions{
+		RemoteName: "origin",
+	}
+
+	err := repository.Fetch(opts)
+	if err != nil {
+		if !strings.Contains(err.Error(), "already up-to-date") {
+			return fmt.Errorf("unable to sync with remote %q: %v", opts.RemoteName, err)
+		}
+	}
+
+	output.Logger().WithField("details", err).Debug("successfully fetched changes from remote")
+	return nil
 }
 
 func (g *GitRepository) Commit(msg string) error {
@@ -69,12 +101,30 @@ func (g *GitRepository) DescribeLong() (string, error) {
 	return out, nil
 }
 
-func (g *GitRepository) GetLatestTag(prefix, baseRegex, suffix string) (string, error) {
+func (g *GitRepository) GetTags() (*object.TagIter, error) {
 	if err := g.Fetch(); err != nil {
+		return nil, err
+	}
+
+	tags, err := repository.TagObjects()
+	if err != nil {
+		return nil, fmt.Errorf("failed to retrieve tags: %v", err)
+	}
+	return tags, nil
+}
+
+func (g *GitRepository) GetLatestTag(prefix, baseRegex, suffix string) (string, error) {
+	regex := g.getVersionRegex(prefix, baseRegex, suffix)
+
+	tags, err := g.GetTags()
+	if err != nil {
 		return "", err
 	}
 
-	regex := g.getVersionRegex(prefix, baseRegex, suffix)
+	err = tags.ForEach(func(t *object.Tag) error {
+		fmt.Println(t)
+		return nil
+	})
 
 	cmd := fmt.Sprintf("git tag --sort=v:refname | grep -E %s | tail -1", regex)
 	out, err := terminal.Shell(cmd)
@@ -82,6 +132,45 @@ func (g *GitRepository) GetLatestTag(prefix, baseRegex, suffix string) (string, 
 		return "", fmt.Errorf("unable to get the latest tag: %v", err)
 	}
 	return out, nil
+}
+
+func GetLatestTagFromRepository(repository *git.Repository) (string, error) {
+	tagRefs, err := repository.Tags()
+	if err != nil {
+		return "", err
+	}
+
+	var latestTagCommit *object.Commit
+	var latestTagName string
+	err = tagRefs.ForEach(func(tagRef *plumbing.Reference) error {
+		revision := plumbing.Revision(tagRef.Name().String())
+		tagCommitHash, err := repository.ResolveRevision(revision)
+		if err != nil {
+			return err
+		}
+
+		commit, err := repository.CommitObject(*tagCommitHash)
+		if err != nil {
+			return err
+		}
+
+		if latestTagCommit == nil {
+			latestTagCommit = commit
+			latestTagName = tagRef.Name().String()
+		}
+
+		if commit.Committer.When.After(latestTagCommit.Committer.When) {
+			latestTagCommit = commit
+			latestTagName = tagRef.Name().String()
+		}
+
+		return nil
+	})
+	if err != nil {
+		return "", err
+	}
+
+	return latestTagName, nil
 }
 
 func (g *GitRepository) getVersionRegex(prefix, baseRegex, suffix string) string {
@@ -117,16 +206,16 @@ func (g *GitRepository) GetTagsHead() (string, error) {
 }
 
 func (g *GitRepository) GetHash() (string, error) {
-	const commit = "HEAD"
-	out, err := terminal.Shell("git rev-parse " + commit)
+	headRef, err := repository.Head()
 	if err != nil {
-		return "", fmt.Errorf("unable to get the hash for %q: %v", commit, err)
+		return "", fmt.Errorf("unable to get the hash of the HEAD commit: %v", err)
 	}
+	headSha := headRef.Hash().String()
 	output.Logger().WithFields(logrus.Fields{
-		"commit":     commit,
-		"commitHash": out,
+		"commit":     "HEAD",
+		"commitHash": headSha,
 	}).Debug("found the hash of the commit")
-	return out, nil
+	return headSha, nil
 }
 
 func (g *GitRepository) GetLatestCommitLogs(count int) (string, error) {
@@ -139,13 +228,4 @@ func (g *GitRepository) GetLatestCommitLogs(count int) (string, error) {
 		"commitLogs":  out,
 	}).Debug("retrieved the latest n commit logs")
 	return out, nil
-}
-
-func (g *GitRepository) Fetch() error {
-	_, err := terminal.Shell("git fetch --prune --prune-tags --tags &> /dev/null ")
-	if err != nil {
-		return fmt.Errorf("unable to sync with remote: %v", err)
-	}
-	output.Logger().Debug("successfully fetched changes from remote")
-	return nil
 }

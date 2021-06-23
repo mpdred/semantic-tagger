@@ -18,11 +18,19 @@ var (
 	ErrNotPushMode = errors.New("push to git skipped: use the `-push` flag to push changes")
 )
 
+const (
+	gitRepoPath = "."
+)
+
 var GitRepo versionControl.VersionControl = &versionControl.GitRepository{}
 
 func main() {
 	args := internal.CliArgs{}
 	args.ParseFlags()
+
+	if err := GitRepo.Open(gitRepoPath); err != nil {
+		output.Logger().Fatal("unable to open git repository")
+	}
 
 	v := setVersion(args)
 
