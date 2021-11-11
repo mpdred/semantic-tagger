@@ -1,4 +1,4 @@
-# Semantic Tagger ![GitHub Actions](https://img.shields.io/github/workflow/status/mpdred/semantic-tagger/Pipeline/master) ![tag](https://img.shields.io/github/v/tag/mpdred/semantic-tagger) ![last commit](https://img.shields.io/github/last-commit/mpdred/semantic-tagger)
+# Semantic Tagger ![go version](https://img.shields.io/github/go-mod/go-version/mpdred/semantic-tagger) ![GitHub Actions](https://img.shields.io/github/workflow/status/mpdred/semantic-tagger/main/master) ![tag](https://img.shields.io/github/v/tag/mpdred/semantic-tagger) ![last commit](https://img.shields.io/github/last-commit/mpdred/semantic-tagger)
 
 Increment a version number as per [Semantic Versioning 2.0.0 specifications](https://semver.org/)
 
