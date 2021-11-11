@@ -27,7 +27,7 @@ jobs:
         run: |
           git config --global user.email "ci@redstonepointers.com"
           git config --global user.name "ci"
-          semtag -increment=auto -git-tag -push
+          semtag -increment=auto -git-tag -push -prefix=v
 
       - name: Persist the version number to disk
         run: |
