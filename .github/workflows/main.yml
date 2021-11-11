@@ -31,7 +31,7 @@ jobs:
 
       - name: Persist the version number to disk
         run: |
-          semtag | tail -1 > .version.txt
+          semtag -prefix=v | tail -1 > .version.txt
           cat .version.txt
 
       - name: Upload the version file
