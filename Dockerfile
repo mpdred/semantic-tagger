@@ -51,4 +51,5 @@ LABEL name="semantic-tagger"
 LABEL source="https://github.com/mpdred/semantic-tagger"
 LABEL url="https://hub.docker.com/r/mpdred/semantic-tagger"
 
+
 ENTRYPOINT "/bin/bash"
